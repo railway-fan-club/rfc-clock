@@ -6,7 +6,7 @@
     <script type = "text/javascript">
 	console.log("Ver.1.5.0_Stand alone");
 	var param = location.search
-	alert(param)
+	document.getElementById('infotext').innerHTML = param;
 	var delay = 0;
 	function clock() {
 	var delay_button;
@@ -107,7 +107,7 @@
     <div align="center" style="font-size: 300%; font-weight: bold;">JavaScriptを有効にしてください。</div>
     </noscript>
     <div class="Scroll">
-      <span>　　-RFC時計 TMCIT Edition Ver.1.5.0 Stand alone-　ここに情報を入力することができます。　　</span><!--この行にスクロール情報を入力-->
+      <span id="infotext">　　-RFC時計 TMCIT Edition Ver.1.5.0 Stand alone-　ここに情報を入力することができます。　　</span><!--この行にスクロール情報を入力-->
     </div>
   </body>
 </html><!--Ver.1.5.0_Stand alone--><!--© 2019-2020 D.Kubota-->
