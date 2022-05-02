@@ -9,7 +9,7 @@
 	
 	function clock() {
 		var param = location.search;
-		document.getElementById('infotext').innerHTML = param.slice(1);
+		document.getElementById('infotext').innerHTML = decodeURI(param.slice(1));
 		var delay_button;
 		var now = new Date();
 		var year = now.getFullYear();
