@@ -5,32 +5,32 @@
     <title>RFC時計 Ver.1.5.0 Stand alone</title>
     <script type = "text/javascript">
 	console.log("Ver.1.5.0_Stand alone");
-	var param = location.search;
-	document.getElementById('infotext').innerHTML = "a";
-	console.log(param);
 	var delay = 0;
+	
 	function clock() {
-	var delay_button;
-	var now = new Date();
-	var year = now.getFullYear();
-	var month = now.getMonth()+1;
-	var date = now.getDate();
-	var hour = now.getHours();
-	var minute1 = now.getMinutes();
-	var minute2 = now.getMinutes();
-	var second = now.getSeconds();
-	minute1 = minute1 - delay;
-	if ( month < 10 ) { month = "0" + month; }
-	if ( date < 10 ) { date = "0" + date; }
-	if ( hour < 10 ) { hour = "0" + hour; }
-	if ( minute1 > 29 ) { minute1 = minute1 - 30; }
-	if ( minute1 < 0 ) { minute1 = minute1 + 30; }
-	if ( minute1 < 10 ) { minute1 = "0" + minute1; }
-	if ( minute2 < 10 ) { minute2 = "0" + minute2; }
-	if ( second < 10 ) { second = "0" + second; }
-	document . getElementById( 'RFCClock' ) . innerHTML = minute1 + ":" + second;
-	document . getElementById( 'Calendar' ) . innerHTML = "現在時刻" + "  " + year + "/" + month + "/" + date + " " + hour + ":" + minute2 + ":" + second;
-	window . setTimeout( "clock()", 1000);
+		var param = location.search;
+		document.getElementById('infotext').innerHTML = "a";
+		var delay_button;
+		var now = new Date();
+		var year = now.getFullYear();
+		var month = now.getMonth()+1;
+		var date = now.getDate();
+		var hour = now.getHours();
+		var minute1 = now.getMinutes();
+		var minute2 = now.getMinutes();
+		var second = now.getSeconds();
+		minute1 = minute1 - delay;
+		if ( month < 10 ) { month = "0" + month; }
+		if ( date < 10 ) { date = "0" + date; }
+		if ( hour < 10 ) { hour = "0" + hour; }
+		if ( minute1 > 29 ) { minute1 = minute1 - 30; }
+		if ( minute1 < 0 ) { minute1 = minute1 + 30; }
+		if ( minute1 < 10 ) { minute1 = "0" + minute1; }
+		if ( minute2 < 10 ) { minute2 = "0" + minute2; }
+		if ( second < 10 ) { second = "0" + second; }
+		document . getElementById( 'RFCClock' ) . innerHTML = minute1 + ":" + second;
+		document . getElementById( 'Calendar' ) . innerHTML = "現在時刻" + "  " + year + "/" + month + "/" + date + " " + hour + ":" + minute2 + ":" + second;
+		window . setTimeout( "clock()", 1000);
 	}
 	window . onload = clock;
 	window . addEventListener('load', function() {
