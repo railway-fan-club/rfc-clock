@@ -4,6 +4,11 @@
 <head>
 	<meta charset="utf-8">
 	<title>RFC時計 Stand alone</title>
+	
+	<div id="rfc_logo">
+		<img src="./img/logo.png"></img>
+	</div>
+
 	<script type="text/javascript">
 		/**
 		 * Get the URL parameter value
@@ -36,7 +41,7 @@
 		var minute1;//グローバル変数に昇格
 		function clock() {
 			var param = location.search;
-			var infotext = "本日もダイヤ運転にお越しいただきありがとうございます。";
+			var infotext = '';
 			if (getParam("infotext") !== null) {
 				infotext = getParam("infotext");
 			}
@@ -108,6 +113,12 @@
 				"MS PGothic",
 				"Hiragino Kaku Gothic Pro",
 				sans-serif;
+		}
+
+		#rfc_logo{
+			position: absolute;
+			top: 0;
+			left: 0;
 		}
 
 		.Model {
