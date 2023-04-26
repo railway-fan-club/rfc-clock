@@ -3,11 +3,12 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>RFC時計 Stand alone</title>
-	
+	<title>RFC時計</title>
+
 	<div id="rfc_logo">
 		<img src="./img/logo.png"></img>
 	</div>
+	<link rel="manifest" href="./manifest.json">
 
 	<script type="text/javascript">
 		/**
@@ -38,7 +39,7 @@
 
 		//打ち上げ開始時刻
 		var hanabi_start = 18;
-		var minute1;//グローバル変数に昇格
+		var minute1; //グローバル変数に昇格
 		function clock() {
 			var param = location.search;
 			var infotext = '';
@@ -99,6 +100,15 @@
 			// }
 		})
 	</script>
+	<script>
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('./sw.js').then(registration => {
+				console.log('ServiceWorker registration successful.');
+			}).catch(err => {
+				console.log('ServiceWorker registration failed.');
+			});
+		}
+	</script>
 	<style type="text/css">
 		body {
 			margin-top: 7vh;
@@ -115,7 +125,7 @@
 				sans-serif;
 		}
 
-		#rfc_logo{
+		#rfc_logo {
 			position: absolute;
 			top: 0;
 			right: 0;
@@ -172,6 +182,7 @@
 			}
 		}
 	</style>
+	
 </head>
 
 <body>
@@ -209,7 +220,7 @@
 				noStroke();
 
 				// 星を描く
-				if(hanabi_start <= minute1){
+				if (hanabi_start <= minute1) {
 					this.drawStar();
 				}
 				// 花火を打ち上げる間隔を調整
@@ -227,7 +238,7 @@
 					}
 
 					// 打ち上げアニメーションを呼び出す
-					if(hanabi_start <= minute1){
+					if (hanabi_start <= minute1) {
 						fw.fire();
 					}
 
@@ -520,4 +531,4 @@
 </body>
 
 </html>
-<!--© 2019-2020 D.Kubota-->
+<!--© 2023 RFC-->
