@@ -74,7 +74,10 @@
         document.getElementById('RFCClock').innerHTML = minute1 + ":" + second;
         document.getElementById('Calendar').innerHTML = "現在時刻" + "  " + year + "/" + month + "/" + date + " " + hour +
             ":" + minute2 + ":" + second;
-        window.setTimeout("clock()", 1000);
+
+        var now_ms = now.getMilliseconds();
+        var timeUntilNextSec_ms = 1000 - now_ms;
+        window.setTimeout("clock()", timeUntilNextSec_ms);
     }
     window.onload = clock;
     window.addEventListener('load', function () {
