@@ -1,9 +1,17 @@
 {
+    /** (未実装) 模型時刻[秒]単位で、端末時刻からどれくらいずらすか */
+    const PARAM_NAME_DELAY = "delay";
+    /** 表示するイベント種別 (`hanabi`等) */
+    const PARAM_NAME_EVENT = "event";
+    /** 下部に表示する案内メッセージ */
+    const PARAM_NAME_INFOTEXT = "infotext";
+
     /**
      * Get the URL parameter value
      *
      * @param  name {string} パラメータのキー文字列
-     * @return  url {url} 対象のURL文字列（任意）
+     * @param  url {url} 対象のURL文字列（任意）
+     * @returns {string} パラメータの値
      */
     function getParam(name, url) {
         if (!url) url = window.location.href;
@@ -16,13 +24,13 @@
     }
 
     var delay = 0;
-    if (getParam("deley") !== null) {
-        var delay = getParam("deley");
+    if (getParam(PARAM_NAME_DELAY) !== null) {
+        delay = getParam(PARAM_NAME_DELAY);
     }
     //特殊モード（秩父夜祭花火用）
     var event = null;
-    if (getParam("event") !== null) {
-        event = getParam("event");
+    if (getParam(PARAM_NAME_EVENT) !== null) {
+        event = getParam(PARAM_NAME_EVENT);
     }
 
     //打ち上げ開始時刻
@@ -31,8 +39,8 @@
     function clock() {
         var param = location.search;
         var infotext = '';
-        if (getParam("infotext") !== null) {
-            infotext = getParam("infotext");
+        if (getParam(PARAM_NAME_INFOTEXT) !== null) {
+            infotext = getParam(PARAM_NAME_INFOTEXT);
         }
 
         document.getElementById('infotext').innerHTML = decodeURI(infotext);
