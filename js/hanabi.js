@@ -22,7 +22,7 @@ function setup() {
 
 function draw() {
     // 背景色を設定
-    if (event == "hanabi") {
+    if (eventMode == "hanabi") {
         //はなびぃ
         setGradient(0, 0, width, height, color(0, 0, 0), color(24, 32, 72), Y_AXIS);
         noStroke();
