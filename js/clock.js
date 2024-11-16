@@ -12,9 +12,9 @@
 
     // modelTotalSecでの日付変更時刻[模型秒]
     // 例: 15 * 60 * 60 は模型時刻15:00:00
-    const DEFAULT_TIME_LEN_S = 3 * 60 * 60
+    const DEFAULT_TIME_LEN_S = 3 * 60 * 60;
     
-    const DEFAULT_TIME_MULTIPLIER = 60
+    const DEFAULT_TIME_MULTIPLIER = 60;
 
     /**
      * Get the URL parameter value
@@ -48,18 +48,11 @@
         }
     }
 
-    var delay = 0;
-    if (getParam(PARAM_NAME_DELAY) !== null) {
-        delay = getParam(PARAM_NAME_DELAY);
-    }
     //特殊モード（秩父夜祭花火用）
-    var event = null;
-    if (getParam(PARAM_NAME_EVENT) !== null) {
-        event = getParam(PARAM_NAME_EVENT);
-    }
+    var eventMode = getParamWithLocalStorage(PARAM_NAME_EVENT) || "";
 
-    const timeLen_ModelS = getParam(PARAM_NAME_TIME_LEN) || Number(localStorage.getItem(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
-    const timeMultiplier = getParam(PARAM_NAME_TIME_MULTIPLIER) || Number(localStorage.getItem(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
+    const timeLen_ModelS = Number(getParamWithLocalStorage(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
+    const timeMultiplier = Number(getParamWithLocalStorage(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
 
     /**
      * 模型時刻での現在時刻を模型秒単位で取得する
@@ -90,17 +83,15 @@
 
     //打ち上げ開始時刻
     var hanabi_start = 18;
-    var minute1; //グローバル変数に昇格
+    // イベント管理用 模型時刻[時] を格納する変数
+    var minute1 = 0;
+    var isInfoTextSet = false;
     function clock() {
-        var param = location.search;
-        var infotext = '';
-        if (getParam(PARAM_NAME_INFOTEXT) !== null) {
-            infotext = getParam(PARAM_NAME_INFOTEXT);
+        if (!isInfoTextSet) {
+            const infotext = getParamWithLocalStorage(PARAM_NAME_INFOTEXT) || "";
+            document.getElementById('infotext').innerHTML = infotext;
+            isInfoTextSet = true;
         }
-
-        document.getElementById('infotext').innerHTML = decodeURI(infotext);
-
-        var delay_button;
         const now = new Date();
         const year = now.getFullYear();
         const month = numPad(now.getMonth() + 1);
@@ -114,6 +105,7 @@
         const modelMinuteNum = Math.abs(Math.floor((modelTotalSec / 60) % 60));
         const modelHour = numPad(modelHourNum);
         const modelMinute = numPad(modelMinuteNum);
+        minute1 = modelHourNum;
 
         document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
         document.getElementById('Calendar').innerHTML = `現在時刻 ${year}/${month}/${date} ${hour}:${minute}:${second}`;
@@ -122,15 +114,7 @@
         const timeUntilNextSec_ms = (1000 - now_ms) / (Math.max(timeMultiplier, 60) / 60);
         window.setTimeout("clock()", timeUntilNextSec_ms);
     }
-    window.onload = clock;
     window.addEventListener('load', function () {
-        delay_button = document.getElementById("RFCClock");
-        // delay_button.onclick = function () {
-        // 	if (delay <= 30) {
-        // 		delay = delay + 5;
-        // 	} else {
-        // 		delay = delay - 25;
-        // 	}
-        // }
+        clock();
     })
 }
