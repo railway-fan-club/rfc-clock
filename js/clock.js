@@ -5,6 +5,16 @@
     const PARAM_NAME_EVENT = "event";
     /** 下部に表示する案内メッセージ */
     const PARAM_NAME_INFOTEXT = "infotext";
+    /** 模型時刻での1日の長さ[秒] */
+    const PARAM_NAME_TIME_LEN = "time-len";
+    /** 現実1秒で模型時刻がどれくらい進むか[現実秒] */
+    const PARAM_NAME_TIME_MULTIPLIER = "time-multiplier";
+
+    // modelTotalSecでの日付変更時刻[模型秒]
+    // 例: 15 * 60 * 60 は模型時刻15:00:00
+    const DEFAULT_TIME_LEN_S = 3 * 60 * 60
+    
+    const DEFAULT_TIME_MULTIPLIER = 60
 
     /**
      * Get the URL parameter value
@@ -22,6 +32,21 @@
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
+    /**
+     * URLパラメータから値を取得するか、パラメータが指定されていなければローカルストレージから取得する
+     * URLパラメータが指定されていた場合、それをローカルストレージに保存する
+     * 
+     * @param {string} name パラメータ名
+     */
+    function getParamWithLocalStorage(name) {
+        const paramValue = getParam(name);
+        if (paramValue) {
+            localStorage[name] = paramValue
+            return paramValue
+        } else {
+            return localStorage[name]
+        }
+    }
 
     var delay = 0;
     if (getParam(PARAM_NAME_DELAY) !== null) {
@@ -31,6 +56,36 @@
     var event = null;
     if (getParam(PARAM_NAME_EVENT) !== null) {
         event = getParam(PARAM_NAME_EVENT);
+    }
+
+    const timeLen_ModelS = getParam(PARAM_NAME_TIME_LEN) || Number(localStorage.getItem(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
+    const timeMultiplier = getParam(PARAM_NAME_TIME_MULTIPLIER) || Number(localStorage.getItem(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
+
+    /**
+     * 模型時刻での現在時刻を模型秒単位で取得する
+     * @param {boolean} withMilliSec ミリ秒まで取得するかどうか
+     * @returns {number} 模型時刻での現在時刻[模型秒]
+     */
+    function getModelTotalSec(withMilliSec = false) {
+        const now = new Date();
+        const realHour = timeMultiplier < 30 ? now.getHours() : 0;
+        const realMinute = now.getMinutes();
+        const realSecond = now.getSeconds();
+        const realMilliSec = withMilliSec ? now.getMilliseconds() : 0;
+        const realTotalSec = realHour * 3600 + realMinute * 60 + realSecond + realMilliSec / 1000;
+        const modelTotalSec = (realTotalSec * timeMultiplier) % timeLen_ModelS;
+        return modelTotalSec;
+    }
+
+    /**
+     * 指定桁数までゼロ埋めした文字列を取得する
+     * 
+     * @param {number} num ゼロ埋めしたい数値
+     * @param {number} length ゼロ埋め後の桁数
+     * @returns {string} ゼロ埋めした文字列
+     */
+    function numPad(num, length = 2) {
+        return ("0000000000" + num).slice(-length);
     }
 
     //打ち上げ開始時刻
@@ -46,45 +101,25 @@
         document.getElementById('infotext').innerHTML = decodeURI(infotext);
 
         var delay_button;
-        var now = new Date();
-        var year = now.getFullYear();
-        var month = now.getMonth() + 1;
-        var date = now.getDate();
-        var hour = now.getHours();
-        minute1 = now.getMinutes();
-        var minute2 = now.getMinutes();
-        var second = now.getSeconds();
-        minute1 = minute1 - delay;
-        if (month < 10) {
-            month = "0" + month;
-        }
-        if (date < 10) {
-            date = "0" + date;
-        }
-        if (hour < 10) {
-            hour = "0" + hour;
-        }
-        if (minute1 > 29) {
-            minute1 = minute1 - 30;
-        }
-        if (minute1 < 0) {
-            minute1 = minute1 + 30;
-        }
-        if (minute1 < 10) {
-            minute1 = "0" + minute1;
-        }
-        if (minute2 < 10) {
-            minute2 = "0" + minute2;
-        }
-        if (second < 10) {
-            second = "0" + second;
-        }
-        document.getElementById('RFCClock').innerHTML = minute1 + ":" + second;
-        document.getElementById('Calendar').innerHTML = "現在時刻" + "  " + year + "/" + month + "/" + date + " " + hour +
-            ":" + minute2 + ":" + second;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = numPad(now.getMonth() + 1);
+        const date = numPad(now.getDate());
+        const hour = numPad(now.getHours());
+        const minute = numPad(now.getMinutes());
+        const second = numPad(now.getSeconds());
 
-        var now_ms = now.getMilliseconds();
-        var timeUntilNextSec_ms = 1000 - now_ms;
+        const modelTotalSec = getModelTotalSec(timeMultiplier != 60);
+        const modelHourNum = Math.abs(Math.floor(modelTotalSec / 3600));
+        const modelMinuteNum = Math.abs(Math.floor((modelTotalSec / 60) % 60));
+        const modelHour = numPad(modelHourNum);
+        const modelMinute = numPad(modelMinuteNum);
+
+        document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
+        document.getElementById('Calendar').innerHTML = `現在時刻 ${year}/${month}/${date} ${hour}:${minute}:${second}`;
+
+        const now_ms = now.getMilliseconds();
+        const timeUntilNextSec_ms = (1000 - now_ms) / (Math.max(timeMultiplier, 60) / 60);
         window.setTimeout("clock()", timeUntilNextSec_ms);
     }
     window.onload = clock;
