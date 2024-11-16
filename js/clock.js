@@ -12,7 +12,7 @@
 
     // modelTotalSecでの日付変更時刻[模型秒]
     // 例: 15 * 60 * 60 は模型時刻15:00:00
-    const DEFAULT_TIME_LEN_S = 3 * 60 * 60;
+    const DEFAULT_TIME_LEN_S = 30 * 60 * 60;
     
     const DEFAULT_TIME_MULTIPLIER = 60;
 
