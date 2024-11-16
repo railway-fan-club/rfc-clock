@@ -116,5 +116,14 @@
     }
     window.addEventListener('load', function () {
         clock();
+        const settingDialog = document.getElementById("setting-dialog");
+        const rfcLogoImg = document.getElementById("rfc_logo");
+        rfcLogoImg.onclick = function () {
+        	settingDialog.style.display = "fixed";
+        }
+        const dialogCancelBtn = document.getElementById("dialog-cancel");
+        dialogCancelBtn.onclick = function () {
+        	settingDialog.style.display = "none";
+        }
     })
 }

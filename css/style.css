@@ -38,6 +38,56 @@ body {
     line-height: 100%;
 }
 
+.Dialog {
+    position: fixed;
+    background-color: #333;
+    margin: auto;
+    max-width: min(90vw, 32em);
+    max-height: min(90vh, 18em);
+    padding: 1em;
+    border-radius: 1em;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    gap: 1em;
+    flex-direction: column;
+}
+.Dialog > * {
+    margin: 0;
+}
+.DialogContentContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+.DialogActionsContainer {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+}
+.SettingItem {
+    display: flex;
+    gap: 1em;
+    flex-direction: row;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+.m-1em {
+    margin: 1em;
+}
+.button {
+    padding: 1em;
+}
+.fontSize-2em {
+    font-size: 2em;
+}
+#infotext {
+    flex: 1;
+}
+
 .Scroll {
     font-family: "Meiryo";
     margin: auto;

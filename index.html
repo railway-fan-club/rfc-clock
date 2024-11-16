@@ -28,6 +28,43 @@
 		<span id="infotext">　　-RFC時計-　ここに情報を入力することができます。　　</span>
 		<!--この行にスクロール情報を入力-->
 	</div>
+
+	<form id="setting-dialog" class="Dialog">
+		<h2>設定</h2>
+		<p>
+			ここで設定した値は、次回以降も利用されます。
+			ただし、クエリパラメータで値が指定された場合、その値が優先的に使用されます。
+		</p>
+		<div class="DialogContentContainer">
+			<div class="SettingItem">
+				<label for="event">イベント</label>
+				<select id="event" name="event">
+					<option value="">なし</option>
+					<option value="hanabi">花火</option>
+				</select>
+			</div>
+			<div class="SettingItem">
+				<label for="infotext">案内文</label>
+				<input id="infotext" name="infotext" type="text" />
+			</div>
+			<div class="SettingItem">
+				<label for="time-len">模型時刻の1日の長さ</label>
+				<select id="time-len" name="time-len">
+					<option value="108000">30時間</option>
+					<option value="54000">15時間</option>
+					<option value="43200">12時間</option>
+					<option value="36000">10時間</option>
+					<option value="18000">5時間</option>
+				</select>
+			</div>
+		</div>
+		<div class="DialogActionsContainer">
+			<input id="dialog-cancel" class="button fontSize-1em" type="button" value="キャンセル" />
+			<input class="button fontSize-1em" type="reset" value="リセット" />
+			<input class="button fontSize-1em" type="submit" value="保存" />
+		</div>
+	</form>
+
 	<script>
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', () => {
