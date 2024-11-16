@@ -41,10 +41,13 @@
     function getParamWithLocalStorage(name) {
         const paramValue = getParam(name);
         if (paramValue) {
-            localStorage[name] = paramValue
-            return paramValue
+            console.log(name, paramValue);
+            localStorage[name] = paramValue;
+            return paramValue;
         } else {
-            return localStorage[name]
+            const storedValue = localStorage[name];
+            console.log(name, storedValue, "(stored)");
+            return storedValue;
         }
     }
 
@@ -116,5 +119,12 @@
     }
     window.addEventListener('load', function () {
         clock();
+
+        const rfcLogo = document.getElementById('rfc_logo');
+        rfcLogo.addEventListener('click', function () {
+            // ローカルストレージのキャッシュをリセットし、クエリに指定されたもののみを使用するようにする
+            localStorage.clear();
+            location.reload();
+        });
     })
 }
