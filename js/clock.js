@@ -40,12 +40,12 @@
      */
     function getParamWithLocalStorage(name) {
         const paramValue = getParam(name);
-        if (paramValue) {
+        if (paramValue != null) {
             console.log(name, paramValue);
-            localStorage[name] = paramValue;
+            localStorage.setItem(name, paramValue);
             return paramValue;
         } else {
-            const storedValue = localStorage[name];
+            const storedValue = localStorage.getItem(name);
             console.log(name, storedValue, "(stored)");
             return storedValue;
         }
