@@ -28,6 +28,21 @@
 		<span id="infotext">　　-RFC時計-　ここに情報を入力することができます。　　</span>
 		<!--この行にスクロール情報を入力-->
 	</div>
+	<div id="setting" style="text-align: left; display: none;">
+		<form method="get" action="./index.html">
+			インフォメーションに表示するテキスト：<input type="text" name="infotext" id="infotext_input" placeholder="情報を入力してください" style="width: 500px;" value=""><br>
+			模型時刻のスピード：<select name="time-multiplier" id="time-multiplier">
+				<option value="60">60倍速（24分 24時間）</option>
+				<option value="30">30倍速（48分 24時間）</option>
+				<option value="15">15倍速（96分 24時間）</option>
+			</select><br>
+			イベント：<select id="event" name="event">
+				<option value="none">イベントなし</option>
+				<option value="hanabi">花火</option>
+			</select><br>
+			<input type="submit" value="設定" class="button">
+		</form>
+	</div>
 	<script>
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', () => {

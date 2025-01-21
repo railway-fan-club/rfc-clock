@@ -16,7 +16,6 @@
     const DEFAULT_TIME_LEN_S = 30 * 60 * 60;
     
     const DEFAULT_TIME_MULTIPLIER = 60;
-    const TIME_MULTIPLIER_MIN = 30;
 
     /**
      * Get the URL parameter value
@@ -100,6 +99,11 @@
         if (!isInfoTextSet) {
             const infotext = getParamWithLocalStorage(PARAM_NAME_INFOTEXT) || "";
             document.getElementById('infotext').innerHTML = infotext;
+            //設定項目にも反映
+            document.getElementById('infotext_input').value = infotext;
+            document.getElementById('time-multiplier').value = timeMultiplier;
+            document.getElementById('event').value = eventMode;
+
             isInfoTextSet = true;
         }
         const now = new Date();
@@ -118,7 +122,7 @@
         const modelSec = numPad(Math.floor(modelTotalSec % 60));
         minute1 = modelHourNum;
 
-        if(timeMultiplier == 30){
+        if(timeMultiplier <= 30){
             document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}:${modelSec}`;
         }else{
             document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
@@ -138,6 +142,13 @@
             // ローカルストレージのキャッシュをリセットし、クエリに指定されたもののみを使用するようにする
             localStorage.clear();
             location.reload();
+        });
+
+        //Calendarクリックで、設定項目を表示
+        const calendar = document.getElementById('Calendar');
+        calendar.addEventListener('click', function () {
+            const setting = document.getElementById('setting');
+            setting.style.display = setting.style.display == 'block' ? 'none' : 'block';
         });
     })
 }
