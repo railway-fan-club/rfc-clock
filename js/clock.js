@@ -9,12 +9,14 @@
     const PARAM_NAME_TIME_LEN = "time-len";
     /** 現実1秒で模型時刻がどれくらい進むか[現実秒] */
     const PARAM_NAME_TIME_MULTIPLIER = "time-multiplier";
+    
 
     // modelTotalSecでの日付変更時刻[模型秒]
     // 例: 15 * 60 * 60 は模型時刻15:00:00
     const DEFAULT_TIME_LEN_S = 30 * 60 * 60;
     
     const DEFAULT_TIME_MULTIPLIER = 60;
+    const TIME_MULTIPLIER_MIN = 30;
 
     /**
      * Get the URL parameter value
@@ -40,6 +42,11 @@
      */
     function getParamWithLocalStorage(name) {
         const paramValue = getParam(name);
+
+        if(name == PARAM_NAME_TIME_MULTIPLIER && paramValue == null){
+            return null;
+        }
+        
         if (paramValue != null) {
             console.log(name, paramValue);
             localStorage.setItem(name, paramValue);
@@ -108,9 +115,15 @@
         const modelMinuteNum = Math.abs(Math.floor((modelTotalSec / 60) % 60));
         const modelHour = numPad(modelHourNum);
         const modelMinute = numPad(modelMinuteNum);
+        const modelSec = numPad(Math.floor(modelTotalSec % 60));
         minute1 = modelHourNum;
 
-        document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
+        if(timeMultiplier == 30){
+            document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}:${modelSec}`;
+        }else{
+            document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
+        }
+
         document.getElementById('Calendar').innerHTML = `現在時刻 ${year}/${month}/${date} ${hour}:${minute}:${second}`;
 
         const now_ms = now.getMilliseconds();
