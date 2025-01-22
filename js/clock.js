@@ -113,7 +113,7 @@
             document.getElementById('event').value = eventMode;
             document.getElementById('view-ss').value = viewss;
             document.getElementById('coron-flickr').value = coronflickr;
-console.log(viewss);
+
             isInfoTextSet = true;
         }
         const now = new Date();
