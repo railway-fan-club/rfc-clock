@@ -45,11 +45,6 @@
      */
     function getParamWithLocalStorage(name) {
         const paramValue = getParam(name);
-
-        if(name == PARAM_NAME_TIME_MULTIPLIER && paramValue == null){
-            return null;
-        }
-        
         if (paramValue != null) {
             localStorage.setItem(name, paramValue);
             return paramValue;
@@ -63,12 +58,11 @@
     //特殊モード（秩父夜祭花火用）
     var eventMode = getParamWithLocalStorage(PARAM_NAME_EVENT) || "";
 
-    const timeLen_ModelS = Number(getParamWithLocalStorage(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
-    const timeMultiplier = Number(getParamWithLocalStorage(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
+    const timeLen_ModelS = Number(getParam(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
+    const timeMultiplier = Number(getParam(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
 
-    const viewss = getParamWithLocalStorage(PARAM_NAME_VIEW_SS) || false;
-    const coronflickr = getParamWithLocalStorage(PARAM_NAME_FLICKR) || false;
-
+    const viewss = getParam(PARAM_NAME_VIEW_SS) || false;
+    const coronflickr = getParam(PARAM_NAME_FLICKR) || false;
 
     /**
      * 模型時刻での現在時刻を模型秒単位で取得する
