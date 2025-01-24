@@ -9,6 +9,11 @@
     const PARAM_NAME_TIME_LEN = "time-len";
     /** 現実1秒で模型時刻がどれくらい進むか[現実秒] */
     const PARAM_NAME_TIME_MULTIPLIER = "time-multiplier";
+    /** ssを表示するかどうか **/
+    const PARAM_NAME_VIEW_SS = "view-ss";
+    /** view-mode **/
+    const PARAM_NAME_FLICKR = "coron-flickr";
+    
 
     // modelTotalSecでの日付変更時刻[模型秒]
     // 例: 15 * 60 * 60 は模型時刻15:00:00
@@ -41,7 +46,6 @@
     function getParamWithLocalStorage(name) {
         const paramValue = getParam(name);
         if (paramValue != null) {
-            console.log(name, paramValue);
             localStorage.setItem(name, paramValue);
             return paramValue;
         } else {
@@ -54,8 +58,11 @@
     //特殊モード（秩父夜祭花火用）
     var eventMode = getParamWithLocalStorage(PARAM_NAME_EVENT) || "";
 
-    const timeLen_ModelS = Number(getParamWithLocalStorage(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
-    const timeMultiplier = Number(getParamWithLocalStorage(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
+    const timeLen_ModelS = Number(getParam(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
+    const timeMultiplier = Number(getParam(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
+
+    const viewss = getParam(PARAM_NAME_VIEW_SS) || false;
+    const coronflickr = getParam(PARAM_NAME_FLICKR) || false;
 
     /**
      * 模型時刻での現在時刻を模型秒単位で取得する
@@ -92,7 +99,15 @@
     function clock() {
         if (!isInfoTextSet) {
             const infotext = getParamWithLocalStorage(PARAM_NAME_INFOTEXT) || "";
+
             document.getElementById('infotext').innerHTML = infotext;
+            //設定項目にも反映
+            document.getElementById('infotext_input').value = infotext;
+            document.getElementById('time-multiplier').value = timeMultiplier;
+            document.getElementById('event').value = eventMode;
+            document.getElementById('view-ss').value = viewss;
+            document.getElementById('coron-flickr').value = coronflickr;
+
             isInfoTextSet = true;
         }
         const now = new Date();
@@ -108,14 +123,39 @@
         const modelMinuteNum = Math.abs(Math.floor((modelTotalSec / 60) % 60));
         const modelHour = numPad(modelHourNum);
         const modelMinute = numPad(modelMinuteNum);
+        const modelSec = numPad(Math.floor(modelTotalSec % 60));
         minute1 = modelHourNum;
 
-        document.getElementById('RFCClock').innerHTML = `${modelHour}:${modelMinute}`;
+        if(viewss == "true"){
+            document.getElementById('RFCClock').innerHTML = `${modelHour}<span class="coron">:</span>${modelMinute}<span class="coron">:</span>${modelSec}`;
+        }else{
+            document.getElementById('RFCClock').innerHTML = `${modelHour}<span class="coron">:</span>${modelMinute}`;
+        }
+
         document.getElementById('Calendar').innerHTML = `現在時刻 ${year}/${month}/${date} ${hour}:${minute}:${second}`;
 
         const now_ms = now.getMilliseconds();
         const timeUntilNextSec_ms = (1000 - now_ms) / (Math.max(timeMultiplier, 60) / 60);
         window.setTimeout("clock()", timeUntilNextSec_ms);
+        
+        if(coronflickr == "true"){
+            window.setTimeout("flickrss()", 500);
+        }
+
+    }
+    function flickrss(){
+        //class=coronがあったらvisibility:hiddenにする なかったら表示にする
+        const coron = document.getElementsByClassName('coron');
+
+        for (let i = 0; i < coron.length; i++) {
+            if(coron[i].style.visibility == 'hidden'){
+                coron[i].style.visibility = 'visible';
+            }else{
+                coron[i].style.visibility = 'hidden';
+            }
+        }
+        
+
     }
     window.addEventListener('load', function () {
         clock();
@@ -125,6 +165,13 @@
             // ローカルストレージのキャッシュをリセットし、クエリに指定されたもののみを使用するようにする
             localStorage.clear();
             location.reload();
+        });
+
+        //Calendarクリックで、設定項目を表示
+        const calendar = document.getElementById('Calendar');
+        calendar.addEventListener('click', function () {
+            const setting = document.getElementById('setting');
+            setting.style.display = setting.style.display == 'block' ? 'none' : 'block';
         });
     })
 }
