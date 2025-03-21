@@ -1,9 +1,9 @@
 // Cache name
-const CACHE_NAME = 'rfc-clock-caches-v1.1';
+const CACHE_NAME = 'rfc-clock-caches-v2';
 // Cache targets
 const urlsToCache = [
-    './',
-    './index.html',
+    // './',
+    // './index.html',
     './css/style.css',
     './js/clock.js',
     './js/hanabi.js',
