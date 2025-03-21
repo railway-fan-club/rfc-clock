@@ -1,5 +1,5 @@
 // Cache name
-const CACHE_NAME = 'rfc-clock-caches-v1';
+const CACHE_NAME = 'rfc-clock-caches-v1.1';
 // Cache targets
 const urlsToCache = [
     './',
