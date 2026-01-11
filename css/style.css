@@ -18,6 +18,16 @@ body {
     position: absolute;
     top: 0;
     right: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+#rfc_logo img {
+    max-height: 12vh;
+    max-width: 30vw;
+    height: auto;
+    width: auto;
+    display: block;
 }
 
 .Model {

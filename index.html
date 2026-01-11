@@ -169,12 +169,71 @@
 		window.addEventListener('load', function () {
 			clock();
 
+			// 右上ロゴ：クリックで任意画像に差し替え（localStorageに保存して次回も維持）
+			const LOGO_STORAGE_KEY = 'custom_logo_data_url';
 			const rfcLogo = document.getElementById('rfc_logo');
+			const rfcLogoImg = document.getElementById('rfc_logo_img');
+			const rfcLogoFileInput = document.getElementById('rfc_logo_file');
+
+			const defaultLogoSrc = rfcLogoImg.getAttribute('data-default-src') || rfcLogoImg.getAttribute('src') || './img/logo.png';
+			const storedLogoDataUrl = localStorage.getItem(LOGO_STORAGE_KEY);
+			if (storedLogoDataUrl && storedLogoDataUrl.startsWith('data:image/')) {
+				rfcLogoImg.src = storedLogoDataUrl;
+			} else if (storedLogoDataUrl) {
+				// 壊れた値が入っていた場合は初期化
+				localStorage.removeItem(LOGO_STORAGE_KEY);
+				rfcLogoImg.src = defaultLogoSrc;
+			}
+
 			rfcLogo.addEventListener('click', function () {
-				// ローカルストレージのキャッシュをリセットし、クエリに指定されたもののみを使用するようにする
-				localStorage.clear();
-				location.reload();
+				rfcLogoFileInput.click();
 			});
+			rfcLogo.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					rfcLogoFileInput.click();
+				}
+			});
+
+			rfcLogoFileInput.addEventListener('change', function () {
+				const file = rfcLogoFileInput.files && rfcLogoFileInput.files[0];
+				if (!file) return;
+				if (!file.type || !file.type.startsWith('image/')) {
+					alert('画像ファイルを選択してください。');
+					rfcLogoFileInput.value = '';
+					return;
+				}
+				// localStorage容量対策：大きすぎる画像は拒否（目安 2MB）
+				if (file.size > 2 * 1024 * 1024) {
+					alert('画像ファイルが大きすぎます（2MB以下にしてください）。');
+					rfcLogoFileInput.value = '';
+					return;
+				}
+				const reader = new FileReader();
+				reader.onload = function () {
+					const dataUrl = String(reader.result || '');
+					if (!dataUrl.startsWith('data:image/')) {
+						alert('画像の読み込みに失敗しました。');
+						return;
+					}
+					localStorage.setItem(LOGO_STORAGE_KEY, dataUrl);
+					rfcLogoImg.src = dataUrl;
+				};
+				reader.onerror = function () {
+					alert('画像の読み込みに失敗しました。');
+				};
+				reader.readAsDataURL(file);
+				rfcLogoFileInput.value = '';
+			});
+
+			// 設定画面からロゴを初期化（RFCロゴに戻す）
+			const resetLogoButton = document.getElementById('reset_logo');
+			if (resetLogoButton) {
+				resetLogoButton.addEventListener('click', function () {
+					localStorage.removeItem(LOGO_STORAGE_KEY);
+					rfcLogoImg.src = defaultLogoSrc;
+				});
+			}
 
 			//Calendarクリックで、設定項目を表示
 			const calendar = document.getElementById('Calendar');
@@ -190,8 +249,9 @@
 </head>
 
 <body>
-	<div id="rfc_logo">
-		<img src="./img/logo.png"></img>
+	<div id="rfc_logo" tabindex="0" role="button" aria-label="ロゴを変更">
+		<input id="rfc_logo_file" type="file" accept="image/*" style="display:none" />
+		<img id="rfc_logo_img" src="./img/logo.png" data-default-src="./img/logo.png" alt="logo"></img>
 	</div>
 	<div class="Model">模型時刻</div>
 	<div id="RFCClock" class="RFCClock"></div>
@@ -224,6 +284,7 @@
 				<option value="false">しない</option>
 				<option value="true">する</option>
 			</select><br>
+			ロゴ：<input type="button" id="reset_logo" value="ロゴ初期化" class="button"><br>
 			<input type="submit" value="設定" class="button">
 		</form>
 	</div>
