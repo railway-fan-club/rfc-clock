@@ -174,6 +174,20 @@
 			const rfcLogo = document.getElementById('rfc_logo');
 			const rfcLogoImg = document.getElementById('rfc_logo_img');
 			const rfcLogoFileInput = document.getElementById('rfc_logo_file');
+			const poweredBy = document.getElementById('powered_by');
+			const rfcFooter = document.getElementById('rfc_footer');
+
+			function updateFooterVisibility() {
+				// ロゴがデフォルト(RFC)のときはフッター全体を非表示。
+				const stored = localStorage.getItem(LOGO_STORAGE_KEY) || '';
+				const hasCustomLogo = stored.startsWith('data:image/');
+				if (rfcFooter) {
+					rfcFooter.style.display = hasCustomLogo ? 'flex' : 'none';
+				}
+				if (poweredBy) {
+					poweredBy.style.display = hasCustomLogo ? 'inline' : 'none';
+				}
+			}
 
 			const defaultLogoSrc = rfcLogoImg.getAttribute('data-default-src') || rfcLogoImg.getAttribute('src') || './img/logo.png';
 			const storedLogoDataUrl = localStorage.getItem(LOGO_STORAGE_KEY);
@@ -184,6 +198,7 @@
 				localStorage.removeItem(LOGO_STORAGE_KEY);
 				rfcLogoImg.src = defaultLogoSrc;
 			}
+			updateFooterVisibility();
 
 			rfcLogo.addEventListener('click', function () {
 				rfcLogoFileInput.click();
@@ -218,6 +233,8 @@
 					}
 					localStorage.setItem(LOGO_STORAGE_KEY, dataUrl);
 					rfcLogoImg.src = dataUrl;
+					updateFooterVisibility();
+					alert('ロゴを差し替えました。権利・利用許諾等に問題がない画像のみ使用してください。\n元に戻す場合は、設定画面の「ロゴ初期化」ボタンを押してください。\nRFCはアップロードされた画像の内容について一切責任を負いません。\nRFC時計の宣伝をしていただけると嬉しいです！');
 				};
 				reader.onerror = function () {
 					alert('画像の読み込みに失敗しました。');
@@ -232,6 +249,7 @@
 				resetLogoButton.addEventListener('click', function () {
 					localStorage.removeItem(LOGO_STORAGE_KEY);
 					rfcLogoImg.src = defaultLogoSrc;
+					updateFooterVisibility();
 				});
 			}
 
@@ -301,6 +319,11 @@
 			});
 		}
 	</script>
+	<div id="rfc_footer" aria-label="RFCロゴ">
+		<img src="./img/logo.png" alt="RFC logo" />
+		<span id="powered_by" style="display:none">Powered by RFC</span>
+		<!-- <a id="terms_link" href="./terms.html">利用規約</a> -->
+	</div>
 </body>
 
 </html>

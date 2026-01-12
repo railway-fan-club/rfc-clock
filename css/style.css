@@ -1,6 +1,7 @@
 
 body {
     margin-top: 7vh;
+    padding-bottom: 9vh;
     color: #FFF;
     background: #000;
     text-align: center;
@@ -28,6 +29,45 @@ body {
     height: auto;
     width: auto;
     display: block;
+}
+
+#rfc_footer {
+    position: fixed;
+    left: 50%;
+    bottom: 1vh;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    user-select: none;
+    pointer-events: none;
+}
+
+#rfc_footer img {
+    max-height: 5vh;
+    max-width: 40vw;
+    height: auto;
+    width: auto;
+    display: block;
+}
+
+#powered_by {
+    font-size: 120%;
+    font-weight: normal;
+    color: #FFF;
+    white-space: nowrap;
+}
+
+#terms_link {
+    font-size: 120%;
+    font-weight: normal;
+    color: #FFF;
+    white-space: nowrap;
+    pointer-events: auto;
+}
+
+#terms_link:visited {
+    color: #FFF;
 }
 
 .Model {
