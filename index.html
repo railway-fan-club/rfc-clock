@@ -95,7 +95,7 @@
 		 * ランダム天候変更
 		 */
 		function changeWeatherRandomly() {
-			const allWeathers = ["none", "koame", "ooame", "kyoufuu", "uraiu", "yuki", "fubuki", "moufubuki"];
+			const allWeathers = ["none", "koame", "ooame", "uraiu", "yuki", "fubuki", "moufubuki"];
 			const availableWeathers = allWeathers.filter(w => !weatherExclusions.includes(w));
 
 			if (availableWeathers.length === 0) {
@@ -164,9 +164,6 @@
 			}
 			if (document.getElementById("exclude-fubuki") && document.getElementById("exclude-fubuki").checked) {
 				weatherExclusions.push("fubuki");
-			}
-			if (document.getElementById("exclude-kyoufuu") && document.getElementById("exclude-kyoufuu").checked) {
-				weatherExclusions.push("kyoufuu");
 			}
 			if (document.getElementById("exclude-yuki") && document.getElementById("exclude-yuki").checked) {
 				weatherExclusions.push("yuki");
@@ -445,7 +442,6 @@
 				'exclude-uraiu',
 				'exclude-ooame',
 				'exclude-fubuki',
-				'exclude-kyoufuu',
 				'exclude-yuki',
 				'exclude-koame'
 			];
@@ -472,7 +468,6 @@
 	<script src="./js/koame.js"></script>
 	<script src="./js/ooame.js"></script>
 	<script src="./js/kyoufuurai.js"></script>
-	<script src="./js/kyoufuu.js"></script>
 	<script src="./js/uraiu.js"></script>
 	<script src="./lib/p5.min.js"></script>
 	<link rel="stylesheet" href="./css/style.css">
@@ -519,7 +514,6 @@
 					<option value="random">ランダム</option>
 					<option value="koame">小雨</option>
 					<option value="ooame">大雨</option>
-					<option value="kyoufuu">強風</option>
 					<option value="uraiu">雨雷</option>
 					<option value="yuki">雪</option>
 					<option value="fubuki">吹雪</option>
@@ -531,7 +525,6 @@
 					<label><input type="checkbox" id="exclude-uraiu"> 雨雷を除外</label><br>
 					<label><input type="checkbox" id="exclude-ooame"> 大雨を除外</label><br>
 					<label><input type="checkbox" id="exclude-fubuki"> 吹雪を除外</label><br>
-					<label><input type="checkbox" id="exclude-kyoufuu"> 強風を除外</label><br>
 					<label><input type="checkbox" id="exclude-yuki"> 雪を除外</label><br>
 					<label><input type="checkbox" id="exclude-koame"> 小雨を除外</label><br>
 				</div>
