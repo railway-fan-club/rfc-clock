@@ -20,13 +20,21 @@ class OoameDrop {
     }
 
     display() {
-        fill(176, 196, 222, this.alpha * 255);  // #B0C4DE
+        let fadeAlpha = this.alpha;
+
+        // 画面下端の100px手前からフェードアウト開始
+        if (this.y > height - 100) {
+            let fadeProgress = (this.y - (height - 100)) / 100;
+            fadeAlpha = this.alpha * (1 - fadeProgress);
+        }
+
+        fill(176, 196, 222, fadeAlpha * 255);  // #B0C4DE
         noStroke();
         ellipse(this.x, this.y, this.w, this.h);
     }
 
     isOffScreen() {
-        return this.y > height + 10 || this.x < -10 || this.x > width + 10;
+        return this.y > height + 50 || this.x < -10 || this.x > width + 10;
     }
 }
 

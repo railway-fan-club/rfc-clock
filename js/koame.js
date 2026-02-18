@@ -20,13 +20,21 @@ class KoameDrop {
     }
 
     display() {
-        fill(173, 216, 230, this.alpha * 255);
+        let fadeAlpha = this.alpha;
+
+        // 画面下端の100px手前からフェードアウト開始
+        if (this.y > height - 100) {
+            let fadeProgress = (this.y - (height - 100)) / 100;
+            fadeAlpha = this.alpha * (1 - fadeProgress);
+        }
+
+        fill(173, 216, 230, fadeAlpha * 255);
         noStroke();
         ellipse(this.x, this.y, this.w, this.h);
     }
 
     isOffScreen() {
-        return this.y > height + 10;
+        return this.y > height + 50;
     }
 }
 
