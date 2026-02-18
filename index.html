@@ -76,6 +76,132 @@
 		const viewss = getParam(PARAM_NAME_VIEW_SS) || false;
 		const coronflickr = getParam(PARAM_NAME_FLICKR) || false;
 
+		// ランダム天候モード用グローバル変数
+		let randomWeatherEnabled = false;
+		let randomWeatherInterval = null;
+		let weatherExclusions = [];
+
+		/**
+		 * ランダム天候モード開始
+		 */
+		function startRandomWeather() {
+			randomWeatherEnabled = true;
+			localStorage.setItem("randomWeatherEnabled", "true");
+			changeWeatherRandomly();  // 即座に1回実行
+			scheduleNextWeatherChange();
+		}
+
+		/**
+		 * ランダム天候変更
+		 */
+		function changeWeatherRandomly() {
+			const allWeathers = ["none", "koame", "ooame", "kyoufuurai", "yuki", "fubuki", "moufubuki"];
+			const availableWeathers = allWeathers.filter(w => !weatherExclusions.includes(w));
+
+			if (availableWeathers.length === 0) {
+				weatherMode = "none";
+			} else {
+				const randomIndex = Math.floor(Math.random() * availableWeathers.length);
+				weatherMode = availableWeathers[randomIndex];
+			}
+
+			// localStorage保存
+			localStorage.setItem(PARAM_NAME_WEATHER, weatherMode);
+		}
+
+		/**
+		 * 次回の天候変更をスケジュール
+		 */
+		function scheduleNextWeatherChange() {
+			if (randomWeatherInterval) {
+				clearTimeout(randomWeatherInterval);
+			}
+
+			// テストモード: URLに ?weather-test=true を付けると1〜2分間隔になる
+			const isTestMode = getParam("weather-test") === "true";
+			let intervalMs;
+			if (isTestMode) {
+				// テストモード: 1〜2分 = 60000〜120000ミリ秒
+				intervalMs = 60000 + Math.random() * 60000;
+				console.log("ランダム天候テストモード: 次回変更まで", Math.round(intervalMs / 1000), "秒");
+			} else {
+				// 通常モード: 30〜60分 = 1800000〜3600000ミリ秒
+				intervalMs = 1800000 + Math.random() * 1800000;
+			}
+			randomWeatherInterval = setTimeout(() => {
+				if (randomWeatherEnabled) {
+					changeWeatherRandomly();
+					scheduleNextWeatherChange();
+				}
+			}, intervalMs);
+		}
+
+		/**
+		 * ランダム天候モード停止
+		 */
+		function stopRandomWeather() {
+			randomWeatherEnabled = false;
+			localStorage.setItem("randomWeatherEnabled", "false");
+			if (randomWeatherInterval) {
+				clearTimeout(randomWeatherInterval);
+				randomWeatherInterval = null;
+			}
+		}
+
+		/**
+		 * 除外設定の保存
+		 */
+		function updateWeatherExclusions() {
+			weatherExclusions = [];
+			if (document.getElementById("exclude-moufubuki") && document.getElementById("exclude-moufubuki").checked) {
+				weatherExclusions.push("moufubuki");
+			}
+			if (document.getElementById("exclude-kyoufuurai") && document.getElementById("exclude-kyoufuurai").checked) {
+				weatherExclusions.push("kyoufuurai");
+			}
+			if (document.getElementById("exclude-ooame") && document.getElementById("exclude-ooame").checked) {
+				weatherExclusions.push("ooame");
+			}
+			if (document.getElementById("exclude-fubuki") && document.getElementById("exclude-fubuki").checked) {
+				weatherExclusions.push("fubuki");
+			}
+			if (document.getElementById("exclude-yuki") && document.getElementById("exclude-yuki").checked) {
+				weatherExclusions.push("yuki");
+			}
+			if (document.getElementById("exclude-koame") && document.getElementById("exclude-koame").checked) {
+				weatherExclusions.push("koame");
+			}
+
+			localStorage.setItem("weatherExclusions", JSON.stringify(weatherExclusions));
+		}
+
+		/**
+		 * 起動時に復元
+		 */
+		function restoreRandomWeatherSettings() {
+			const saved = localStorage.getItem("weatherExclusions");
+			if (saved) {
+				try {
+					weatherExclusions = JSON.parse(saved);
+					// チェックボックスの状態を復元
+					weatherExclusions.forEach(weather => {
+						const checkbox = document.getElementById("exclude-" + weather);
+						if (checkbox) {
+							checkbox.checked = true;
+						}
+					});
+				} catch (e) {
+					console.error("Failed to parse weatherExclusions:", e);
+					weatherExclusions = [];
+				}
+			}
+
+			const randomEnabled = localStorage.getItem("randomWeatherEnabled");
+			if (randomEnabled === "true") {
+				startRandomWeather();
+			}
+		}
+
 		/**
 		 * 模型時刻での現在時刻を模型秒単位で取得する
 		 * @param {boolean} withMilliSec ミリ秒まで取得するかどうか
@@ -278,6 +404,60 @@
 					document.getElementById(targetTab + '-panel').classList.add('active');
 				});
 			});
+
+			// ランダム天候モード関連の初期化
+			restoreRandomWeatherSettings();
+
+			// 天候選択の変更を監視
+			const weatherSelect = document.getElementById('weather');
+			const weatherExclusionsDiv = document.getElementById('weather-exclusions');
+
+			function updateWeatherExclusionsVisibility() {
+				if (weatherSelect.value === 'random') {
+					weatherExclusionsDiv.style.display = 'block';
+				} else {
+					weatherExclusionsDiv.style.display = 'none';
+				}
+			}
+
+			// 初期表示を設定
+			updateWeatherExclusionsVisibility();
+
+			weatherSelect.addEventListener('change', function () {
+				if (this.value === 'random') {
+					weatherExclusionsDiv.style.display = 'block';
+					startRandomWeather();
+				} else {
+					weatherExclusionsDiv.style.display = 'none';
+					stopRandomWeather();
+					// 通常の天候モードに切り替え
+					weatherMode = this.value;
+					localStorage.setItem(PARAM_NAME_WEATHER, weatherMode);
+				}
+			});
+
+			// 除外チェックボックスの変更を監視
+			const exclusionCheckboxes = [
+				'exclude-moufubuki',
+				'exclude-kyoufuurai',
+				'exclude-ooame',
+				'exclude-fubuki',
+				'exclude-yuki',
+				'exclude-koame'
+			];
+
+			exclusionCheckboxes.forEach(id => {
+				const checkbox = document.getElementById(id);
+				if (checkbox) {
+					checkbox.addEventListener('change', function () {
+						updateWeatherExclusions();
+						// 除外設定が変わったら、すぐに新しい天候に切り替え
+						if (randomWeatherEnabled) {
+							changeWeatherRandomly();
+						}
+					});
+				}
+			});
 		})
 	</script>
 	<script src="./js/hanabi.js"></script>
@@ -330,6 +510,7 @@
 			<div id="weather-panel" class="tab-panel">
 				天候エフェクト：<select id="weather" name="weather">
 					<option value="none">なし（晴れ）</option>
+					<option value="random">ランダム</option>
 					<option value="koame">小雨</option>
 					<option value="ooame">大雨</option>
 					<option value="kyoufuurai">強風雷</option>
@@ -337,6 +518,15 @@
 					<option value="fubuki">吹雪</option>
 					<option value="moufubuki">猛吹雪</option>
 				</select><br>
+				<div id="weather-exclusions" style="margin-top: 10px; display: none;">
+					<div style="font-weight: bold; margin-bottom: 5px;">ランダムから除外する天候：</div>
+					<label><input type="checkbox" id="exclude-moufubuki"> 猛吹雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-kyoufuurai"> 強風雷を除外</label><br>
+					<label><input type="checkbox" id="exclude-ooame"> 大雨を除外</label><br>
+					<label><input type="checkbox" id="exclude-fubuki"> 吹雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-yuki"> 雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-koame"> 小雨を除外</label><br>
+				</div>
 			</div>
 			表示モード:<select id="view-ss" name="view-ss">
 				<option value="false">時：分（hh:mm）</option>
