@@ -67,6 +67,10 @@ function draw() {
         drawOoame();
     } else if (weatherMode == "kyoufuurai") {
         drawKyoufuurai();
+    } else if (weatherMode == "kyoufuu") {
+        drawKyoufuu();
+    } else if (weatherMode == "uraiu") {
+        drawUraiu();
     }
 
 }

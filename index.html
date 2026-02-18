@@ -95,7 +95,7 @@
 		 * ランダム天候変更
 		 */
 		function changeWeatherRandomly() {
-			const allWeathers = ["none", "koame", "ooame", "kyoufuurai", "yuki", "fubuki", "moufubuki"];
+			const allWeathers = ["none", "koame", "ooame", "kyoufuu", "uraiu", "yuki", "fubuki", "moufubuki"];
 			const availableWeathers = allWeathers.filter(w => !weatherExclusions.includes(w));
 
 			if (availableWeathers.length === 0) {
@@ -156,14 +156,17 @@
 			if (document.getElementById("exclude-moufubuki") && document.getElementById("exclude-moufubuki").checked) {
 				weatherExclusions.push("moufubuki");
 			}
-			if (document.getElementById("exclude-kyoufuurai") && document.getElementById("exclude-kyoufuurai").checked) {
-				weatherExclusions.push("kyoufuurai");
+			if (document.getElementById("exclude-uraiu") && document.getElementById("exclude-uraiu").checked) {
+				weatherExclusions.push("uraiu");
 			}
 			if (document.getElementById("exclude-ooame") && document.getElementById("exclude-ooame").checked) {
 				weatherExclusions.push("ooame");
 			}
 			if (document.getElementById("exclude-fubuki") && document.getElementById("exclude-fubuki").checked) {
 				weatherExclusions.push("fubuki");
+			}
+			if (document.getElementById("exclude-kyoufuu") && document.getElementById("exclude-kyoufuu").checked) {
+				weatherExclusions.push("kyoufuu");
 			}
 			if (document.getElementById("exclude-yuki") && document.getElementById("exclude-yuki").checked) {
 				weatherExclusions.push("yuki");
@@ -439,9 +442,10 @@
 			// 除外チェックボックスの変更を監視
 			const exclusionCheckboxes = [
 				'exclude-moufubuki',
-				'exclude-kyoufuurai',
+				'exclude-uraiu',
 				'exclude-ooame',
 				'exclude-fubuki',
+				'exclude-kyoufuu',
 				'exclude-yuki',
 				'exclude-koame'
 			];
@@ -468,6 +472,8 @@
 	<script src="./js/koame.js"></script>
 	<script src="./js/ooame.js"></script>
 	<script src="./js/kyoufuurai.js"></script>
+	<script src="./js/kyoufuu.js"></script>
+	<script src="./js/uraiu.js"></script>
 	<script src="./lib/p5.min.js"></script>
 	<link rel="stylesheet" href="./css/style.css">
 </head>
@@ -513,7 +519,8 @@
 					<option value="random">ランダム</option>
 					<option value="koame">小雨</option>
 					<option value="ooame">大雨</option>
-					<option value="kyoufuurai">強風雷</option>
+					<option value="kyoufuu">強風</option>
+					<option value="uraiu">雨雷</option>
 					<option value="yuki">雪</option>
 					<option value="fubuki">吹雪</option>
 					<option value="moufubuki">猛吹雪</option>
@@ -521,9 +528,10 @@
 				<div id="weather-exclusions" style="margin-top: 10px; display: none;">
 					<div style="font-weight: bold; margin-bottom: 5px;">ランダムから除外する天候：</div>
 					<label><input type="checkbox" id="exclude-moufubuki"> 猛吹雪を除外</label><br>
-					<label><input type="checkbox" id="exclude-kyoufuurai"> 強風雷を除外</label><br>
+					<label><input type="checkbox" id="exclude-uraiu"> 雨雷を除外</label><br>
 					<label><input type="checkbox" id="exclude-ooame"> 大雨を除外</label><br>
 					<label><input type="checkbox" id="exclude-fubuki"> 吹雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-kyoufuu"> 強風を除外</label><br>
 					<label><input type="checkbox" id="exclude-yuki"> 雪を除外</label><br>
 					<label><input type="checkbox" id="exclude-koame"> 小雨を除外</label><br>
 				</div>
