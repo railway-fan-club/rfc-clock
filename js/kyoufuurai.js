@@ -1,6 +1,7 @@
 let kyoufuuraiDrops = [];
 const MAX_KYOUFUURAI = 300;
 let lightningTimer = 0;
+let nextLightning = random(180, 480);  // 次の雷までのフレーム数（初回）
 let lightningFlash = false;
 let flashAlpha = 0;
 
@@ -42,11 +43,11 @@ function drawKyoufuurai() {
 
     // 雷フラッシュロジック
     lightningTimer++;
-    let flashInterval = random(180, 480);  // 3〜8秒（60fps想定）
-    if (lightningTimer > flashInterval) {
+    if (lightningTimer > nextLightning) {
         lightningFlash = true;
-        flashAlpha = 200;
+        flashAlpha = 120;  // 明るさ抑制（200 → 120）
         lightningTimer = 0;
+        nextLightning = random(180, 480);  // 次回の間隔をランダムに設定
     }
 
     // フラッシュフェードアウト
