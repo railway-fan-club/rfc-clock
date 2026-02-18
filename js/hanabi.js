@@ -51,6 +51,14 @@ function draw() {
             }
 
         }
+    } else if (eventMode == "sakura") {
+        drawSakura();
+    } else if (eventMode == "yuki") {
+        drawYuki();
+    } else if (eventMode == "fubuki") {
+        drawFubuki();
+    } else if (eventMode == "moufubuki") {
+        drawMoufubuki();
     }
 
 }

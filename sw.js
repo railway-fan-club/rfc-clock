@@ -7,6 +7,10 @@ const urlsToCache = [
     './css/style.css',
     './js/clock.js',
     './js/hanabi.js',
+    './js/sakura.js',
+    './js/yuki.js',
+    './js/fubuki.js',
+    './js/moufubuki.js',
     './lib/p5.min.js',
     './img/logo.png',
 ];
