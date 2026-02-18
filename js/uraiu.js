@@ -16,7 +16,7 @@ class UraiuDrop {
         this.vy = random(20, 28);
         this.w = random(1, 2);
         this.h = random(25, 40);
-        this.alpha = random(0.7, 1.0);
+        this.alpha = random(0.25, 0.5);  // 白画面化防止のため大幅減
     }
 
     update() {
@@ -47,9 +47,8 @@ function drawUraiu() {
         uraiuInitialized = true;
     }
 
-    // 非常に暗い背景
-    setGradient(0, 0, width, height,
-        color(15, 15, 15), color(35, 35, 35));
+    // 黒背景（雷フラッシュ残像を完全に消すため）
+    background(0);
 
     // 雷フラッシュロジック（確実に動作）
     uraiuLightningTimer++;
