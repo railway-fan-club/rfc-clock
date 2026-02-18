@@ -6,12 +6,12 @@ const MAX_KOAME = 200;
 class KoameDrop {
     constructor() {
         this.x = random(width);
-        this.y = random(-100, -10);
-        this.vx = 0;
-        this.vy = random(8, 12);
-        this.w = random(1, 2);
-        this.h = random(8, 12);
-        this.alpha = random(0.4, 0.7);
+        this.y = random(-200, -10);
+        this.vx = random(-1, 1);
+        this.vy = random(15, 22);  // 高速化（小雨）
+        this.w = random(1, 2);     // 細く
+        this.h = random(25, 40);   // より長く
+        this.alpha = random(0.5, 0.8);
     }
 
     update() {
@@ -20,21 +20,14 @@ class KoameDrop {
     }
 
     display() {
-        let fadeAlpha = this.alpha;
-
-        // 画面下端の100px手前からフェードアウト開始
-        if (this.y > height - 100) {
-            let fadeProgress = (this.y - (height - 100)) / 100;
-            fadeAlpha = this.alpha * (1 - fadeProgress);
-        }
-
-        fill(173, 216, 230, fadeAlpha * 255);
-        noStroke();
-        ellipse(this.x, this.y, this.w, this.h);
+        // フェードアウトロジックは削除（即座に消えるため）
+        stroke(176, 196, 222, this.alpha * 255);
+        strokeWeight(this.w);
+        line(this.x, this.y, this.x, this.y + this.h);  // 線状描画
     }
 
     isOffScreen() {
-        return this.y > height + 50;
+        return this.y > height + 5 || this.x < -10 || this.x > width + 10;
     }
 }
 

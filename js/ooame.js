@@ -8,9 +8,9 @@ class OoameDrop {
         this.x = random(width);
         this.y = random(-200, -10);
         this.vx = random(-1, 1);  // わずかに横揺れ
-        this.vy = random(18, 25);  // 小雨の2倍速
-        this.w = random(2, 3);
-        this.h = random(15, 25);
+        this.vy = random(28, 38);  // 高速化（大雨）
+        this.w = random(1, 2);     // 細く
+        this.h = random(25, 40);   // より長く
         this.alpha = random(0.6, 0.9);
     }
 
@@ -20,21 +20,14 @@ class OoameDrop {
     }
 
     display() {
-        let fadeAlpha = this.alpha;
-
-        // 画面下端の100px手前からフェードアウト開始
-        if (this.y > height - 100) {
-            let fadeProgress = (this.y - (height - 100)) / 100;
-            fadeAlpha = this.alpha * (1 - fadeProgress);
-        }
-
-        fill(176, 196, 222, fadeAlpha * 255);  // #B0C4DE
-        noStroke();
-        ellipse(this.x, this.y, this.w, this.h);
+        // フェードアウトロジックは削除（即座に消えるため）
+        stroke(176, 196, 222, this.alpha * 255);
+        strokeWeight(this.w);
+        line(this.x, this.y, this.x, this.y + this.h);  // 線状描画
     }
 
     isOffScreen() {
-        return this.y > height + 50 || this.x < -10 || this.x > width + 10;
+        return this.y > height + 5 || this.x < -10 || this.x > width + 10;
     }
 }
 
