@@ -10,8 +10,10 @@
 	<script>
 		/** (未実装) 模型時刻[秒]単位で、端末時刻からどれくらいずらすか */
 		const PARAM_NAME_DELAY = "delay";
-		/** 表示するイベント種別 (`hanabi`等) */
-		const PARAM_NAME_EVENT = "event";
+		/** 表示する季節エフェクト種別 (`hanabi`等) */
+		const PARAM_NAME_SEASON = "season";
+		/** 表示する天候エフェクト種別 (`yuki`等) */
+		const PARAM_NAME_WEATHER = "weather";
 		/** 下部に表示する案内メッセージ */
 		const PARAM_NAME_INFOTEXT = "infotext";
 		/** 模型時刻での1日の長さ[秒] */
@@ -64,8 +66,9 @@
 			}
 		}
 
-		//特殊モード（秩父夜祭花火用）
-		var eventMode = getParamWithLocalStorage(PARAM_NAME_EVENT) || "";
+		//エフェクトモード（季節・天候）
+		var seasonMode = getParamWithLocalStorage(PARAM_NAME_SEASON) || "none";
+		var weatherMode = getParamWithLocalStorage(PARAM_NAME_WEATHER) || "none";
 
 		const timeLen_ModelS = Number(getParam(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
 		const timeMultiplier = Number(getParam(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
@@ -113,7 +116,8 @@
 				//設定項目にも反映
 				document.getElementById('infotext_input').value = infotext;
 				document.getElementById('time-multiplier').value = timeMultiplier;
-				document.getElementById('event').value = eventMode;
+				document.getElementById('season').value = seasonMode;
+				document.getElementById('weather').value = weatherMode;
 				document.getElementById('view-ss').value = viewss;
 				document.getElementById('coron-flickr').value = coronflickr;
 
@@ -259,6 +263,21 @@
 				const setting = document.getElementById('setting');
 				setting.style.display = setting.style.display == 'block' ? 'none' : 'block';
 			});
+
+			// タブ切り替え
+			const tabs = document.querySelectorAll('.tab');
+			const tabPanels = document.querySelectorAll('.tab-panel');
+			tabs.forEach(tab => {
+				tab.addEventListener('click', function () {
+					const targetTab = this.getAttribute('data-tab');
+					// すべてのタブとパネルからactiveを外す
+					tabs.forEach(t => t.classList.remove('active'));
+					tabPanels.forEach(p => p.classList.remove('active'));
+					// クリックされたタブとそのパネルにactiveを付ける
+					this.classList.add('active');
+					document.getElementById(targetTab + '-panel').classList.add('active');
+				});
+			});
 		})
 	</script>
 	<script src="./js/hanabi.js"></script>
@@ -266,6 +285,8 @@
 	<script src="./js/yuki.js"></script>
 	<script src="./js/fubuki.js"></script>
 	<script src="./js/moufubuki.js"></script>
+	<script src="./js/koame.js"></script>
+	<script src="./js/ooame.js"></script>
 	<script src="./lib/p5.min.js"></script>
 	<link rel="stylesheet" href="./css/style.css">
 </head>
@@ -294,14 +315,28 @@
 				<option value="60">60倍速（24分 24時間）</option>
 				<option value="30">30倍速（48分 24時間）</option>
 			</select><br>
-			イベント：<select id="event" name="event">
-				<option value="none">イベントなし</option>
-				<option value="hanabi">花火</option>
-			<option value="sakura">桜吹雪</option>
-			<option value="yuki">雪</option>
-			<option value="fubuki">吹雪</option>
-			<option value="moufubuki">猛吹雪</option>
-			</select><br>
+			<div class="tabs">
+				<button type="button" class="tab active" data-tab="season">季節</button>
+				<button type="button" class="tab" data-tab="weather">天候</button>
+			</div>
+			<div id="season-panel" class="tab-panel active">
+				季節エフェクト：<select id="season" name="season">
+					<option value="none">なし</option>
+					<option value="hanabi">花火</option>
+					<option value="sakura">桜吹雪</option>
+				</select><br>
+			</div>
+			<div id="weather-panel" class="tab-panel">
+				天候エフェクト：<select id="weather" name="weather">
+					<option value="none">なし（晴れ）</option>
+					<option value="koame">小雨</option>
+					<option value="ooame">大雨</option>
+					<option value="arashi">強風雷</option>
+					<option value="yuki">雪</option>
+					<option value="fubuki">吹雪</option>
+					<option value="moufubuki">猛吹雪</option>
+				</select><br>
+			</div>
 			表示モード:<select id="view-ss" name="view-ss">
 				<option value="false">時：分（hh:mm）</option>
 				<option value="true">時：分：秒（hh:mm:ss）</option>

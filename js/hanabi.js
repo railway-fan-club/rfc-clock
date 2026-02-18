@@ -21,16 +21,15 @@ function setup() {
 }
 
 function draw() {
-    // 背景色を設定
-    if (eventMode == "hanabi") {
+    // 背景色を設定（花火モードの時のみ）
+    if (seasonMode == "hanabi") {
         //はなびぃ
         setGradient(0, 0, width, height, color(0, 0, 0), color(24, 32, 72), Y_AXIS);
         noStroke();
 
-        // 星を描く
-        if (hanabi_start <= minute1) {
-            this.drawStar();
-        }
+        // 星を描く（時刻制御なし）
+        this.drawStar();
+
         // 花火を打ち上げる間隔を調整
         if (0 === frameCount % 100) {
             // 打ち上がるスピード
@@ -40,26 +39,34 @@ function draw() {
 
         for (let fw of fireworks) {
             // 打ち切った花火を処理対象から外す（配列から削除する）
-            if (2 === fw.getType || 30000 < fw.getFrame || !(hanabi_start <= minute1)) {
+            if (2 === fw.getType || 30000 < fw.getFrame) {
                 fireworks = fireworks.filter((n) => n !== fw);
                 continue;
             }
 
-            // 打ち上げアニメーションを呼び出す
-            if (hanabi_start <= minute1) {
-                fw.fire();
-            }
-
+            // 打ち上げアニメーションを呼び出す（時刻制御なし）
+            fw.fire();
         }
-    } else if (eventMode == "sakura") {
-        drawSakura();
-    } else if (eventMode == "yuki") {
-        drawYuki();
-    } else if (eventMode == "fubuki") {
-        drawFubuki();
-    } else if (eventMode == "moufubuki") {
-        drawMoufubuki();
     }
+
+    // 季節エフェクト（花火と重ねて表示可能）
+    if (seasonMode == "sakura") {
+        drawSakura();
+    }
+
+    // 天候エフェクト
+    if (weatherMode == "yuki") {
+        drawYuki();
+    } else if (weatherMode == "fubuki") {
+        drawFubuki();
+    } else if (weatherMode == "moufubuki") {
+        drawMoufubuki();
+    } else if (weatherMode == "koame") {
+        drawKoame();
+    } else if (weatherMode == "ooame") {
+        drawOoame();
+    }
+    // 強風雷は後続タスクで実装
 
 }
 
