@@ -65,8 +65,9 @@ function draw() {
         drawKoame();
     } else if (weatherMode == "ooame") {
         drawOoame();
+    } else if (weatherMode == "kyoufuurai") {
+        drawKyoufuurai();
     }
-    // 強風雷は後続タスクで実装
 
 }
 
