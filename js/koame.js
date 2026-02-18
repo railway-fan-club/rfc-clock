@@ -27,7 +27,7 @@ class KoameDrop {
     }
 
     isOffScreen() {
-        return this.y > height + 5 || this.x < -10 || this.x > width + 10;
+        return this.y >= height || this.x < -10 || this.x > width + 10;
     }
 }
 
