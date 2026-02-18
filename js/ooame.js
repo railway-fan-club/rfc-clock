@@ -11,7 +11,7 @@ class OoameDrop {
         this.vy = random(28, 38);  // 高速化（大雨）
         this.w = random(1, 2);     // 細く
         this.h = random(25, 40);   // より長く
-        this.alpha = random(0.6, 0.9);
+        this.alpha = random(0.25, 0.5);
     }
 
     update() {
@@ -33,8 +33,7 @@ class OoameDrop {
 
 function drawOoame() {
     // 暗い背景
-    setGradient(0, 0, width, height,
-        color(30, 30, 30), color(50, 50, 50));
+    background(0);
 
     // パーティクル生成（毎フレーム）
     if (ooameDrops.length < MAX_OOAME) {

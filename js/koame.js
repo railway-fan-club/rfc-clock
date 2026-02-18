@@ -11,7 +11,7 @@ class KoameDrop {
         this.vy = random(15, 22);  // 高速化（小雨）
         this.w = random(1, 2);     // 細く
         this.h = random(25, 40);   // より長く
-        this.alpha = random(0.5, 0.8);
+        this.alpha = random(0.2, 0.4);
     }
 
     update() {
@@ -32,8 +32,7 @@ class KoameDrop {
 }
 
 function drawKoame() {
-    setGradient(0, 0, width, height,
-        color(60, 60, 60), color(80, 80, 80));
+    background(0);
 
     if (frameCount % 2 === 0 && koameDrops.length < MAX_KOAME) {
         koameDrops.push(new KoameDrop());
