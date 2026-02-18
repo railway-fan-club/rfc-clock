@@ -5,17 +5,14 @@ class FubukiFlake {
     constructor() {
         this.x = random(-50, width);
         this.y = random(-50, -10);
-        this.baseVx = random(3, 8);
-        this.vx = this.baseVx;
+        this.vx = 0;  // 横風削除（垂直落下）
         this.vy = random(2, 5);
         this.size = random(1, 6);
         this.alpha = random(100, 255);
     }
 
     update() {
-        // 風の強弱 (sin波で変動)
-        let windFactor = sin(frameCount * 0.01) * 0.5 + 1;
-        this.vx = this.baseVx * windFactor;
+        // 垂直落下のみ（横風なし）
         this.x += this.vx;
         this.y += this.vy;
     }
