@@ -98,6 +98,9 @@
 			const allWeathers = ["none", "koame", "ooame", "uraiu", "yuki", "fubuki", "moufubuki"];
 			const availableWeathers = allWeathers.filter(w => !weatherExclusions.includes(w));
 
+			// パーティクル初期化
+			resetAllWeatherParticles();
+
 			if (availableWeathers.length === 0) {
 				weatherMode = "none";
 			} else {
@@ -207,6 +210,52 @@
 		 * @param {boolean} withMilliSec ミリ秒まで取得するかどうか
 		 * @returns {number} 模型時刻での現在時刻[模型秒]
 		 */
+		/**
+		 * 全天候エフェクトのパーティクルを初期化
+		 */
+		function resetAllWeatherParticles() {
+			// 小雨
+			if (typeof koameDrops !== 'undefined') {
+				koameDrops = [];
+			}
+
+			// 大雨
+			if (typeof ooameDrops !== 'undefined') {
+				ooameDrops = [];
+			}
+
+			// 雨雷
+			if (typeof uraiuDrops !== 'undefined') {
+				uraiuDrops = [];
+				uraiuLightningFlash = false;
+				uraiuFlashAlpha = 0;
+				uraiuInitialized = false;
+			}
+
+			// 雪
+			if (typeof yukiFlakes !== 'undefined') {
+				yukiFlakes = [];
+			}
+
+			// 吹雪
+			if (typeof fubukiFlakes !== 'undefined') {
+				fubukiFlakes = [];
+			}
+
+			// 猛吹雪
+			if (typeof moufubukiFlakes !== 'undefined') {
+				moufubukiFlakes = [];
+			}
+
+			// 桜吹雪
+			if (typeof sakuraFlakes !== 'undefined') {
+				sakuraFlakes = [];
+			}
+
+			// 画面クリア
+			background(0);
+		}
+
 		function getModelTotalSec(withMilliSec = false) {
 			const now = new Date();
 			const realHour = timeMultiplier < 30 ? now.getHours() : 0;
@@ -430,11 +479,25 @@
 				} else {
 					weatherExclusionsDiv.style.display = 'none';
 					stopRandomWeather();
+					// パーティクル初期化
+					resetAllWeatherParticles();
 					// 通常の天候モードに切り替え
 					weatherMode = this.value;
 					localStorage.setItem(PARAM_NAME_WEATHER, weatherMode);
 				}
 			});
+
+			// 季節選択の変更を監視
+			const seasonSelect = document.getElementById('season');
+			if (seasonSelect) {
+				seasonSelect.addEventListener('change', function () {
+					// パーティクル初期化
+					resetAllWeatherParticles();
+					// 季節モードに切り替え
+					seasonMode = this.value;
+					localStorage.setItem(PARAM_NAME_SEASON, seasonMode);
+				});
+			}
 
 			// 除外チェックボックスの変更を監視
 			const exclusionCheckboxes = [
