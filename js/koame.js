@@ -8,10 +8,10 @@ class KoameDrop {
         this.x = random(width);
         this.y = random(-200, -10);
         this.vx = random(-1, 1);
-        this.vy = random(15, 22);  // 高速化（小雨）
-        this.w = random(1, 2);     // 細く
-        this.h = random(25, 40);   // より長く
-        this.alpha = random(0.2, 0.4);
+        this.vy = random(15, 22);
+        this.w = random(2, 4);     // 太く
+        this.h = random(30, 50);   // 長く
+        this.alpha = random(0.25, 0.45);
     }
 
     update() {
@@ -20,10 +20,9 @@ class KoameDrop {
     }
 
     display() {
-        // フェードアウトロジックは削除（即座に消えるため）
         stroke(176, 196, 222, this.alpha * 255);
         strokeWeight(this.w);
-        line(this.x, this.y, this.x, this.y + this.h);  // 線状描画
+        line(this.x, this.y, this.x, this.y + this.h);
     }
 
     isOffScreen() {
