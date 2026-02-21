@@ -86,6 +86,24 @@ body {
     font-weight: Normal;
     font-size: 300%;
     line-height: 100%;
+    cursor: pointer;
+}
+
+.setting-open-btn {
+    background: none;
+    border: 1px solid #555;
+    color: #888;
+    border-radius: 6px;
+    padding: 0.2em 1em;
+    font-size: 100%;
+    cursor: pointer;
+    margin-top: 0.5em;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.setting-open-btn:hover {
+    color: #fff;
+    border-color: #aaa;
 }
 
 .Scroll {
@@ -119,4 +137,226 @@ body {
     100% {
         transform: translateX(-100%)
     }
+}
+
+/* タブUI */
+.tabs {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    border-bottom: 2px solid #444;
+}
+
+.tab {
+    padding: 0.5em 1em;
+    background: #333;
+    color: #FFF;
+    border: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    font-size: 100%;
+    transition: background 0.2s;
+}
+
+.tab:hover {
+    background: #555;
+}
+
+.tab.active {
+    background: #666;
+    font-weight: bold;
+}
+
+.tab-panel {
+    display: none;
+    margin-bottom: 1em;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* ===== 設定モーダル ===== */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    position: relative;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 2em 2.5em;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    text-align: left;
+    color: #eee;
+}
+
+.modal-close {
+    position: absolute;
+    top: 0.5em;
+    right: 0.7em;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 200%;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-title {
+    margin: 0 0 1em 0;
+    font-size: 140%;
+    color: #fff;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5em;
+}
+
+/* フォーム要素 */
+
+.modal-content input[type="text"],
+.modal-content select {
+    background: #2a2a2a;
+    color: #eee;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 0.4em 0.6em;
+    font-size: 100%;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.modal-content input[type="text"]:focus,
+.modal-content select:focus {
+    outline: none;
+    border-color: #666;
+}
+
+.modal-content input[type="text"] {
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+.modal-content label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    margin-bottom: 0.3em;
+    cursor: pointer;
+    color: #ccc;
+}
+
+.modal-content label:hover {
+    color: #fff;
+}
+
+/* ボタン */
+
+.modal-content .button,
+.modal-content input[type="submit"] {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 0.5em 1.5em;
+    font-size: 100%;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font-family: inherit;
+}
+
+.modal-content .button:hover,
+.modal-content input[type="submit"]:hover {
+    background: #444;
+    border-color: #777;
+}
+
+.modal-content input[type="submit"] {
+    background: #2a4a7f;
+    border-color: #3a6abf;
+    margin-top: 1em;
+}
+
+.modal-content input[type="submit"]:hover {
+    background: #3a5a9f;
+}
+
+/* 行間調整 */
+
+.modal-content form > br {
+    display: block;
+    margin-bottom: 0.8em;
+    content: "";
+}
+
+/* ランダム除外セクション */
+
+#weather-exclusions {
+    background: #222;
+    border-radius: 8px;
+    padding: 0.8em 1em;
+    margin-top: 0.5em;
+}
+
+/* タブ（モーダル内） */
+
+.modal-content .tabs {
+    border-bottom-color: #555;
+}
+
+.modal-content .tab {
+    background: #2a2a2a;
+    font-size: 95%;
+}
+
+.modal-content .tab:hover {
+    background: #3a3a3a;
+}
+
+.modal-content .tab.active {
+    background: #444;
+}
+
+/* スクロールバー */
+
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

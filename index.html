@@ -10,8 +10,10 @@
 	<script>
 		/** (未実装) 模型時刻[秒]単位で、端末時刻からどれくらいずらすか */
 		const PARAM_NAME_DELAY = "delay";
-		/** 表示するイベント種別 (`hanabi`等) */
-		const PARAM_NAME_EVENT = "event";
+		/** 表示する季節エフェクト種別 (`hanabi`等) */
+		const PARAM_NAME_SEASON = "season";
+		/** 表示する天候エフェクト種別 (`yuki`等) */
+		const PARAM_NAME_WEATHER = "weather";
 		/** 下部に表示する案内メッセージ */
 		const PARAM_NAME_INFOTEXT = "infotext";
 		/** 模型時刻での1日の長さ[秒] */
@@ -64,8 +66,9 @@
 			}
 		}
 
-		//特殊モード（秩父夜祭花火用）
-		var eventMode = getParamWithLocalStorage(PARAM_NAME_EVENT) || "";
+		//エフェクトモード（季節・天候）
+		var seasonMode = getParamWithLocalStorage(PARAM_NAME_SEASON) || "none";
+		var weatherMode = getParamWithLocalStorage(PARAM_NAME_WEATHER) || "none";
 
 		const timeLen_ModelS = Number(getParam(PARAM_NAME_TIME_LEN)) || DEFAULT_TIME_LEN_S;
 		const timeMultiplier = Number(getParam(PARAM_NAME_TIME_MULTIPLIER)) || DEFAULT_TIME_MULTIPLIER;
@@ -73,11 +76,217 @@
 		const viewss = getParam(PARAM_NAME_VIEW_SS) || false;
 		const coronflickr = getParam(PARAM_NAME_FLICKR) || false;
 
+		// ランダム天候モード用グローバル変数
+		let randomWeatherEnabled = false;
+		let randomWeatherInterval = null;
+		let weatherExclusions = [];
+
+		/**
+		 * ランダム天候モード開始
+		 */
+		function startRandomWeather() {
+			randomWeatherEnabled = true;
+			// "random" を天候値として保存（復元時の判定に使う）
+			localStorage.setItem(PARAM_NAME_WEATHER, "random");
+			changeWeatherRandomly();  // 即座に1回実行
+			scheduleNextWeatherChange();
+		}
+
+		/**
+		 * ランダム天候変更
+		 */
+		function changeWeatherRandomly() {
+			const allWeathers = ["koame", "ooame", "uraiu", "yuki", "fubuki", "moufubuki"];
+			const availableWeathers = allWeathers.filter(w => !weatherExclusions.includes(w));
+
+			// パーティクル初期化
+			resetAllWeatherParticles();
+
+			if (availableWeathers.length === 0) {
+				weatherMode = "none";
+			} else if (availableWeathers.length === 1) {
+				weatherMode = availableWeathers[0];
+			} else {
+				// 現在の天候を除外して、必ず違う天候に変える
+				const candidates = availableWeathers.filter(w => w !== weatherMode);
+				const randomIndex = Math.floor(Math.random() * candidates.length);
+				weatherMode = candidates[randomIndex];
+			}
+
+			// localStorage の weather は "random" のまま維持（実天候は上書きしない）
+			console.log("ランダム天候変更:", weatherMode);
+		}
+
+		/**
+		 * 次回の天候変更をスケジュール
+		 */
+		function scheduleNextWeatherChange() {
+			if (randomWeatherInterval) {
+				clearTimeout(randomWeatherInterval);
+			}
+
+			// テストモード: URLに ?weather-test=true を付けると1〜2分間隔になる
+			const isTestMode = getParam("weather-test") === "true";
+			let intervalMs;
+			if (isTestMode) {
+				// テストモード: 1〜2分 = 60000〜120000ミリ秒
+				intervalMs = 60000 + Math.random() * 60000;
+				console.log("ランダム天候テストモード: 次回変更まで", Math.round(intervalMs / 1000), "秒");
+			} else {
+				// 通常モード: 1〜3分 = 60000〜180000ミリ秒
+				intervalMs = 60000 + Math.random() * 120000;
+			}
+			console.log("ランダム天候: 次回変更まで", Math.round(intervalMs / 1000), "秒");
+			randomWeatherInterval = setTimeout(() => {
+				if (randomWeatherEnabled) {
+					console.log("ランダム天候: タイマー発火、天候切替実行");
+					changeWeatherRandomly();
+					scheduleNextWeatherChange();
+				}
+			}, intervalMs);
+		}
+
+		/**
+		 * ランダム天候モード停止
+		 */
+		function stopRandomWeather() {
+			randomWeatherEnabled = false;
+			if (randomWeatherInterval) {
+				clearTimeout(randomWeatherInterval);
+				randomWeatherInterval = null;
+			}
+			// URLパラメータに weather=random が残っていると
+			// リロード時にURLが優先されて再びランダムになるため除去
+			const url = new URL(window.location.href);
+			if (url.searchParams.get("weather") === "random") {
+				url.searchParams.delete("weather");
+				history.replaceState(null, '', url.toString());
+			}
+		}
+
+		/**
+		 * 除外設定の保存
+		 */
+		function updateWeatherExclusions() {
+			weatherExclusions = [];
+			if (document.getElementById("exclude-moufubuki") && document.getElementById("exclude-moufubuki").checked) {
+				weatherExclusions.push("moufubuki");
+			}
+			if (document.getElementById("exclude-uraiu") && document.getElementById("exclude-uraiu").checked) {
+				weatherExclusions.push("uraiu");
+			}
+			if (document.getElementById("exclude-ooame") && document.getElementById("exclude-ooame").checked) {
+				weatherExclusions.push("ooame");
+			}
+			if (document.getElementById("exclude-fubuki") && document.getElementById("exclude-fubuki").checked) {
+				weatherExclusions.push("fubuki");
+			}
+			if (document.getElementById("exclude-yuki") && document.getElementById("exclude-yuki").checked) {
+				weatherExclusions.push("yuki");
+			}
+			if (document.getElementById("exclude-koame") && document.getElementById("exclude-koame").checked) {
+				weatherExclusions.push("koame");
+			}
+
+			localStorage.setItem("weatherExclusions", JSON.stringify(weatherExclusions));
+		}
+
+		/**
+		 * 起動時に復元
+		 */
+		function restoreRandomWeatherSettings() {
+			const saved = localStorage.getItem("weatherExclusions");
+			if (saved) {
+				try {
+					weatherExclusions = JSON.parse(saved);
+					// チェックボックスの状態を復元
+					weatherExclusions.forEach(weather => {
+						const checkbox = document.getElementById("exclude-" + weather);
+						if (checkbox) {
+							checkbox.checked = true;
+						}
+					});
+				} catch (e) {
+					console.error("Failed to parse weatherExclusions:", e);
+					weatherExclusions = [];
+				}
+			}
+
+			// 旧バージョンの残骸をクリーンアップ
+			localStorage.removeItem("randomWeatherEnabled");
+
+			if (weatherMode === "random") {
+				// セレクトボックスを「ランダム」に戻す
+				const weatherSelect = document.getElementById('weather');
+				if (weatherSelect) {
+					weatherSelect.value = 'random';
+				}
+				// 除外チェックボックスUIを表示
+				const weatherExclusionsDiv = document.getElementById('weather-exclusions');
+				if (weatherExclusionsDiv) {
+					weatherExclusionsDiv.style.display = 'block';
+				}
+				startRandomWeather();
+			}
+		}
+
 		/**
 		 * 模型時刻での現在時刻を模型秒単位で取得する
 		 * @param {boolean} withMilliSec ミリ秒まで取得するかどうか
 		 * @returns {number} 模型時刻での現在時刻[模型秒]
 		 */
+		/**
+		 * 全天候エフェクトのパーティクルを初期化
+		 */
+		function resetAllWeatherParticles() {
+			// 小雨
+			if (typeof koameDrops !== 'undefined') {
+				koameDrops = [];
+			}
+
+			// 大雨
+			if (typeof ooameDrops !== 'undefined') {
+				ooameDrops = [];
+			}
+			if (typeof ooameSplashes !== 'undefined') {
+				ooameSplashes = [];
+			}
+
+			// 雨雷
+			if (typeof uraiuDrops !== 'undefined') {
+				uraiuDrops = [];
+				uraiuLightningFlash = false;
+				uraiuFlashAlpha = 0;
+				uraiuInitialized = false;
+			}
+			if (typeof uraiuSplashes !== 'undefined') {
+				uraiuSplashes = [];
+			}
+
+			// 雪
+			if (typeof yukiFlakes !== 'undefined') {
+				yukiFlakes = [];
+			}
+
+			// 吹雪
+			if (typeof fubukiFlakes !== 'undefined') {
+				fubukiFlakes = [];
+			}
+
+			// 猛吹雪
+			if (typeof moufubukiFlakes !== 'undefined') {
+				moufubukiFlakes = [];
+			}
+
+			// 桜吹雪
+			if (typeof sakuraFlakes !== 'undefined') {
+				sakuraFlakes = [];
+			}
+
+			// 画面クリア
+			background(0);
+		}
+
 		function getModelTotalSec(withMilliSec = false) {
 			const now = new Date();
 			const realHour = timeMultiplier < 30 ? now.getHours() : 0;
@@ -113,7 +322,9 @@
 				//設定項目にも反映
 				document.getElementById('infotext_input').value = infotext;
 				document.getElementById('time-multiplier').value = timeMultiplier;
-				document.getElementById('event').value = eventMode;
+				document.getElementById('season').value = seasonMode;
+				// ランダムモード中は "random" を維持（実天候で上書きしない）
+				document.getElementById('weather').value = randomWeatherEnabled ? "random" : weatherMode;
 				document.getElementById('view-ss').value = viewss;
 				document.getElementById('coron-flickr').value = coronflickr;
 
@@ -243,6 +454,14 @@
 				rfcLogoFileInput.value = '';
 			});
 
+			// 設定画面からロゴを変更
+			const changeLogoButton = document.getElementById('change_logo');
+			if (changeLogoButton) {
+				changeLogoButton.addEventListener('click', function () {
+					rfcLogoFileInput.click();
+				});
+			}
+
 			// 設定画面からロゴを初期化（RFCロゴに戻す）
 			const resetLogoButton = document.getElementById('reset_logo');
 			if (resetLogoButton) {
@@ -253,15 +472,124 @@
 				});
 			}
 
-			//Calendarクリックで、設定項目を表示
+			//設定モーダルの開閉
 			const calendar = document.getElementById('Calendar');
-			calendar.addEventListener('click', function () {
-				const setting = document.getElementById('setting');
-				setting.style.display = setting.style.display == 'block' ? 'none' : 'block';
+			const settingOpen = document.getElementById('setting-open');
+			const settingOverlay = document.getElementById('setting-overlay');
+			const settingClose = document.getElementById('setting-close');
+
+			function openSettingModal() {
+				settingOverlay.classList.add('active');
+			}
+
+			calendar.addEventListener('click', openSettingModal);
+			if (settingOpen) {
+				settingOpen.addEventListener('click', openSettingModal);
+			}
+
+			settingClose.addEventListener('click', function () {
+				settingOverlay.classList.remove('active');
+			});
+
+			settingOverlay.addEventListener('click', function (e) {
+				if (e.target === settingOverlay) {
+					settingOverlay.classList.remove('active');
+				}
+			});
+
+			// タブ切り替え
+			const tabs = document.querySelectorAll('.tab');
+			const tabPanels = document.querySelectorAll('.tab-panel');
+			tabs.forEach(tab => {
+				tab.addEventListener('click', function () {
+					const targetTab = this.getAttribute('data-tab');
+					// すべてのタブとパネルからactiveを外す
+					tabs.forEach(t => t.classList.remove('active'));
+					tabPanels.forEach(p => p.classList.remove('active'));
+					// クリックされたタブとそのパネルにactiveを付ける
+					this.classList.add('active');
+					document.getElementById(targetTab + '-panel').classList.add('active');
+				});
+			});
+
+			// ランダム天候モード関連の初期化
+			restoreRandomWeatherSettings();
+
+			// 天候選択の変更を監視
+			const weatherSelect = document.getElementById('weather');
+			const weatherExclusionsDiv = document.getElementById('weather-exclusions');
+
+			function updateWeatherExclusionsVisibility() {
+				if (weatherSelect.value === 'random') {
+					weatherExclusionsDiv.style.display = 'block';
+				} else {
+					weatherExclusionsDiv.style.display = 'none';
+				}
+			}
+
+			// 初期表示を設定
+			updateWeatherExclusionsVisibility();
+
+			weatherSelect.addEventListener('change', function () {
+				if (this.value === 'random') {
+					weatherExclusionsDiv.style.display = 'block';
+					startRandomWeather();
+				} else {
+					weatherExclusionsDiv.style.display = 'none';
+					stopRandomWeather();
+					// パーティクル初期化
+					resetAllWeatherParticles();
+					// 通常の天候モードに切り替え
+					weatherMode = this.value;
+					localStorage.setItem(PARAM_NAME_WEATHER, weatherMode);
+				}
+			});
+
+			// 季節選択の変更を監視
+			const seasonSelect = document.getElementById('season');
+			if (seasonSelect) {
+				seasonSelect.addEventListener('change', function () {
+					// パーティクル初期化
+					resetAllWeatherParticles();
+					// 季節モードに切り替え
+					seasonMode = this.value;
+					localStorage.setItem(PARAM_NAME_SEASON, seasonMode);
+				});
+			}
+
+			// 除外チェックボックスの変更を監視
+			const exclusionCheckboxes = [
+				'exclude-moufubuki',
+				'exclude-uraiu',
+				'exclude-ooame',
+				'exclude-fubuki',
+				'exclude-yuki',
+				'exclude-koame'
+			];
+
+			exclusionCheckboxes.forEach(id => {
+				const checkbox = document.getElementById(id);
+				if (checkbox) {
+					checkbox.addEventListener('change', function () {
+						updateWeatherExclusions();
+						// 除外設定が変わったら、すぐに新しい天候に切り替え
+						if (randomWeatherEnabled) {
+							changeWeatherRandomly();
+						}
+					});
+				}
 			});
 		})
 	</script>
 	<script src="./js/hanabi.js"></script>
+	<script src="./js/sakura.js"></script>
+	<script src="./js/yuki.js"></script>
+	<script src="./js/fubuki.js"></script>
+	<script src="./js/moufubuki.js"></script>
+	<script src="./js/koame.js"></script>
+	<script src="./js/ooame.js"></script>
+	<script src="./js/kyoufuurai.js"></script>
+	<script src="./js/uraiu.js"></script>
 	<script src="./lib/p5.min.js"></script>
 	<link rel="stylesheet" href="./css/style.css">
 </head>
@@ -274,7 +602,7 @@
 	<div class="Model">模型時刻</div>
 	<div id="RFCClock" class="RFCClock"></div>
 	<div id="Calendar" class="Calendar"></div>
-	
+	<!-- <button type="button" id="setting-open" class="setting-open-btn">設定</button> -->
 
 	<noscript>
 		<div align="center" style="font-size: 300%; font-weight: bold;">JavaScriptを有効にしてください。</div>
@@ -283,17 +611,48 @@
 		<span id="infotext">　　-RFC時計-　ここに情報を入力することができます。　　</span>
 		<!--この行にスクロール情報を入力-->
 	</div>
-	<div id="setting" style="text-align: left; display: none;">
+	<div id="setting-overlay" class="modal-overlay">
+		<div id="setting" class="modal-content">
+			<button type="button" id="setting-close" class="modal-close">&times;</button>
+			<h3 class="modal-title">設定</h3>
 		<form method="get" action="./index.html">
-			インフォメーションに表示するテキスト：<input type="text" name="infotext" id="infotext_input" placeholder="情報を入力してください" style="width: 500px;" value=""><br>
+			インフォメーションに表示するテキスト：<input type="text" name="infotext" id="infotext_input" placeholder="情報を入力してください" value=""><br>
 			模型時刻のスピード：<select name="time-multiplier" id="time-multiplier">
 				<option value="60">60倍速（24分 24時間）</option>
 				<option value="30">30倍速（48分 24時間）</option>
 			</select><br>
-			イベント：<select id="event" name="event">
-				<option value="none">イベントなし</option>
-				<option value="hanabi">花火</option>
-			</select><br>
+			<div class="tabs">
+				<button type="button" class="tab active" data-tab="season">季節</button>
+				<button type="button" class="tab" data-tab="weather">天候</button>
+			</div>
+			<div id="season-panel" class="tab-panel active">
+				季節エフェクト：<select id="season" name="season">
+					<option value="none">なし</option>
+					<option value="hanabi">花火</option>
+					<!-- <option value="sakura">桜吹雪</option> -->
+				</select><br>
+			</div>
+			<div id="weather-panel" class="tab-panel">
+				天候エフェクト：<select id="weather" name="weather">
+					<option value="none">なし（晴れ）</option>
+					<!-- <option value="random">ランダム</option> -->
+					<option value="koame">小雨</option>
+					<option value="ooame">大雨</option>
+					<option value="uraiu">雨雷</option>
+					<option value="yuki">雪</option>
+					<option value="fubuki">吹雪</option>
+					<option value="moufubuki">猛吹雪</option>
+				</select><br>
+				<div id="weather-exclusions" style="margin-top: 10px; display: none;">
+					<div style="font-weight: bold; margin-bottom: 5px;">ランダムから除外する天候：</div>
+					<label><input type="checkbox" id="exclude-moufubuki"> 猛吹雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-uraiu"> 雨雷を除外</label><br>
+					<label><input type="checkbox" id="exclude-ooame"> 大雨を除外</label><br>
+					<label><input type="checkbox" id="exclude-fubuki"> 吹雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-yuki"> 雪を除外</label><br>
+					<label><input type="checkbox" id="exclude-koame"> 小雨を除外</label><br>
+				</div>
+			</div>
 			表示モード:<select id="view-ss" name="view-ss">
 				<option value="false">時：分（hh:mm）</option>
 				<option value="true">時：分：秒（hh:mm:ss）</option>
@@ -302,9 +661,10 @@
 				<option value="false">しない</option>
 				<option value="true">する</option>
 			</select><br>
-			ロゴ：<input type="button" id="reset_logo" value="ロゴ初期化" class="button"><br>
+			ロゴ：<input type="button" id="change_logo" value="ロゴ変更" class="button"> <input type="button" id="reset_logo" value="ロゴ初期化" class="button"><br>
 			<input type="submit" value="設定" class="button">
 		</form>
+		</div>
 	</div>
 	<script>
 		if ('serviceWorker' in navigator) {
