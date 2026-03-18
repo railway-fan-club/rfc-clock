@@ -1,17 +1,10 @@
 // 桜吹雪エフェクト
 let sakuraPetals = [];
 
-// 花火発動判定関数（時間帯ベース: 19:00-21:00）
+// 花火発動判定関数（hanabi.js と同じロジック: seasonMode のみで判定）
 function isHanabiActive() {
-    // seasonMode が 'both' または 'hanabi' の時のみ判定
-    if (seasonMode !== 'both' && seasonMode !== 'hanabi') {
-        return false;
-    }
-
-    // 19:00-21:00 の間は true
-    let now = new Date();
-    let hour = now.getHours();
-    return (hour >= 19 && hour < 21);
+    // seasonMode が 'both' または 'hanabi' なら常にtrue
+    return (seasonMode === 'both' || seasonMode === 'hanabi');
 }
 
 class SakuraPetal {
@@ -83,7 +76,7 @@ function drawSakura() {
     setGradient(0, 0, width, height, color(20, 10, 40), color(40, 20, 60), Y_AXIS);
 
     // 桜の木を描画（左下に配置）
-    drawSakuraTree(100, height, 150);
+    drawSakuraTree(100, height, height * 0.4);
 
     // 新しい花びらを生成（花火発動中は停止）
     if (!isHanabiActive() && frameCount % 10 === 0 && sakuraPetals.length < 300) {
@@ -103,15 +96,19 @@ function drawSakura() {
 }
 
 function drawSakuraTree(x, y, treeHeight) {
+    randomSeed(42);  // 固定シード値で桜の木の形を固定
+
     // 1. 幹（台形 — 上に行くほど細くなる）
+    const trunkWidthBottom = treeHeight * 0.16; // 下部の幅（現在の約4倍）
+    const trunkWidthTop = treeHeight * 0.08;    // 上部の幅（現在の約2倍）
     push();
     noStroke();
     fill(80, 60, 40);
     beginShape();
-    vertex(x - 20, y);              // 左下（太い）
-    vertex(x + 20, y);              // 右下（太い）
-    vertex(x + 8, y - treeHeight);  // 右上（細い）
-    vertex(x - 8, y - treeHeight);  // 左上（細い）
+    vertex(x - trunkWidthBottom / 2, y);              // 左下（太い）
+    vertex(x + trunkWidthBottom / 2, y);              // 右下（太い）
+    vertex(x + trunkWidthTop / 2, y - treeHeight);  // 右上（細い）
+    vertex(x - trunkWidthTop / 2, y - treeHeight);  // 左上（細い）
     endShape(CLOSE);
     pop();
 
@@ -119,15 +116,17 @@ function drawSakuraTree(x, y, treeHeight) {
     let startX = x;
     let startY = y - treeHeight * 0.8;
 
-    // 左枝（-60度から開始）
-    drawBranch(startX, startY, -PI * 0.6, 40, 3);
-    // 中央枝（-90度から開始）
-    drawBranch(startX, startY, -PI / 2, 50, 3);
-    // 右枝（-120度から開始）
-    drawBranch(startX, startY, -PI * 0.4, 40, 3);
+    // 左枝（-135度から開始、より広い角度）
+    const branchLength = treeHeight * 0.38;
+    const branchDepth = 4;
+    drawBranch(startX, startY, -PI * 0.75, branchLength, branchDepth, treeHeight);
+    // 中央枝（-90度から開始、より長く）
+    drawBranch(startX, startY, -PI / 2, branchLength * 1.05, branchDepth, treeHeight);
+    // 右枝（-45度から開始、より広い角度）
+    drawBranch(startX, startY, -PI * 0.25, branchLength, branchDepth, treeHeight);
 }
 
-function drawBranch(x1, y1, angle, length, depth) {
+function drawBranch(x1, y1, angle, length, depth, treeHeight) {
     if (depth === 0) return;
 
     let x2 = x1 + cos(angle) * length;
@@ -140,14 +139,14 @@ function drawBranch(x1, y1, angle, length, depth) {
     pop();
 
     // 花の配置（枝先は必ず、途中は確率的に）
-    if (depth === 1 || (depth === 2 && random() < 0.5)) {
-        let size = random(25, 45);
+    if (depth === 1 || (depth === 2 && random() < 0.8) || (depth === 3 && random() < 0.3)) {
+        let size = treeHeight * 0.1; // treeHeight に比例
         drawFlowerCluster(x2, y2, size);
     }
 
     // 再帰的に分岐
-    drawBranch(x2, y2, angle - 0.4, length * 0.7, depth - 1);
-    drawBranch(x2, y2, angle + 0.4, length * 0.7, depth - 1);
+    drawBranch(x2, y2, angle - 0.4, length * 0.7, depth - 1, treeHeight);
+    drawBranch(x2, y2, angle + 0.4, length * 0.7, depth - 1, treeHeight);
 }
 
 function drawFlowerCluster(x, y, size) {
