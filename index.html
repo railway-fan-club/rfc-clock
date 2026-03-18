@@ -364,13 +364,9 @@
 				document.getElementById('coron-flickr').value = coronflickr;
 
 				// オフセット表示を復元
-				const offsetSlider = document.getElementById('offsetSlider');
 				const offsetValue = document.getElementById('offsetValue');
-				if (offsetSlider) {
-					offsetSlider.value = offsetMinutes;
-				}
 				if (offsetValue) {
-					offsetValue.textContent = offsetMinutes;
+					offsetValue.value = offsetMinutes;
 				}
 
 				isInfoTextSet = true;
@@ -666,8 +662,10 @@
 				<option value="60">60倍速（24分 24時間）</option>
 				<option value="30">30倍速（48分 24時間）</option>
 			</select><br>
-			模型時刻 開始オフセット：<span id="offsetValue">0</span>分<br>
-			<input type="range" id="offsetSlider" min="0" max="29" value="0" oninput="updateOffset(this.value)" style="width: 200px;"><br>
+			模型時刻 開始オフセット：<input type="number" id="offsetValue" min="0" max="29" value="0" oninput="updateOffset(this.value)" style="width: 60px;">分<br>
+			<!-- 模型時刻 開始オフセット：<span id="offsetValue">0</span>分<br> -->
+			<!-- <input type="range" id="offsetSlider" min="0" max="29" value="0" oninput="updateOffset(this.value)" style="width: 200px;"><br> -->
+			
 			<div class="tabs">
 				<button type="button" class="tab active" data-tab="season">季節</button>
 				<button type="button" class="tab" data-tab="weather">天候</button>
@@ -676,7 +674,8 @@
 				季節エフェクト：<select id="season" name="season">
 					<option value="none">なし</option>
 					<option value="hanabi">花火</option>
-					<!-- <option value="sakura">桜吹雪</option> -->
+					<option value="sakura">桜吹雪</option>
+					<option value="both">桜吹雪+花火</option>
 				</select><br>
 			</div>
 			<div id="weather-panel" class="tab-panel">
