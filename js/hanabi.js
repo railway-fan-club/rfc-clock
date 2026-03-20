@@ -22,7 +22,7 @@ function setup() {
 
 function draw() {
     // 背景色を設定（花火モードの時のみ）
-    if (seasonMode == "hanabi") {
+    if (seasonMode == "hanabi" || seasonMode == "both") {
         //はなびぃ
         setGradient(0, 0, width, height, color(0, 0, 0), color(24, 32, 72), Y_AXIS);
         noStroke();
@@ -50,7 +50,7 @@ function draw() {
     }
 
     // 季節エフェクト（花火と重ねて表示可能）
-    if (seasonMode == "sakura") {
+    if (seasonMode == "sakura" || seasonMode == "both") {
         drawSakura();
     }
 

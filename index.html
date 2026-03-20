@@ -29,8 +29,11 @@
 		// modelTotalSecでの日付変更時刻[模型秒]
 		// 例: 15 * 60 * 60 は模型時刻15:00:00
 		const DEFAULT_TIME_LEN_S = 30 * 60 * 60;
-		
+
 		const DEFAULT_TIME_MULTIPLIER = 60;
+
+		// 模型時刻開始オフセット（分単位）
+		let offsetMinutes = 0;
 
 		/**
 		 * Get the URL parameter value
@@ -293,14 +296,40 @@
 			const realMinute = now.getMinutes();
 			const realSecond = now.getSeconds();
 			const realMilliSec = withMilliSec ? now.getMilliseconds() : 0;
-			const realTotalSec = realHour * 3600 + realMinute * 60 + realSecond + realMilliSec / 1000;
+			// オフセット適用（負数対策で+60してから%60）
+			const adjustedMinute = (realMinute - offsetMinutes + 60) % 60;
+			const realTotalSec = realHour * 3600 + adjustedMinute * 60 + realSecond + realMilliSec / 1000;
 			const modelTotalSec = (realTotalSec * timeMultiplier) % timeLen_ModelS;
 			return modelTotalSec;
 		}
 
 		/**
+		 * オフセット設定を保存して適用
+		 * @param {number} newOffset 新しいオフセット値（分）
+		 */
+		function setOffset(newOffset) {
+			offsetMinutes = newOffset;
+			localStorage.setItem('mokeiOffsetMinutes', offsetMinutes.toString());
+		}
+
+		/**
+		 * UI更新時のオフセット適用
+		 * @param {string|number} value スライダー等から渡される値
+		 */
+		function updateOffset(value) {
+			const newOffset = parseInt(value);
+			if (newOffset >= 0 && newOffset <= 29) {
+				setOffset(newOffset);
+				const offsetValueSpan = document.getElementById('offsetValue');
+				if (offsetValueSpan) {
+					offsetValueSpan.textContent = newOffset;
+				}
+			}
+		}
+
+		/**
 		 * 指定桁数までゼロ埋めした文字列を取得する
-		 * 
+		 *
 		 * @param {number} num ゼロ埋めしたい数値
 		 * @param {number} length ゼロ埋め後の桁数
 		 * @returns {string} ゼロ埋めした文字列
@@ -318,6 +347,12 @@
 			if (!isInfoTextSet) {
 				const infotext = getParamWithLocalStorage(PARAM_NAME_INFOTEXT) || "";
 
+				// オフセット復元
+				const savedOffset = localStorage.getItem('mokeiOffsetMinutes');
+				if (savedOffset !== null) {
+					offsetMinutes = parseInt(savedOffset);
+				}
+
 				document.getElementById('infotext').innerHTML = infotext;
 				//設定項目にも反映
 				document.getElementById('infotext_input').value = infotext;
@@ -327,6 +362,12 @@
 				document.getElementById('weather').value = randomWeatherEnabled ? "random" : weatherMode;
 				document.getElementById('view-ss').value = viewss;
 				document.getElementById('coron-flickr').value = coronflickr;
+
+				// オフセット表示を復元
+				const offsetValue = document.getElementById('offsetValue');
+				if (offsetValue) {
+					offsetValue.value = offsetMinutes;
+				}
 
 				isInfoTextSet = true;
 			}
@@ -621,6 +662,10 @@
 				<option value="60">60倍速（24分 24時間）</option>
 				<option value="30">30倍速（48分 24時間）</option>
 			</select><br>
+			模型時刻 開始オフセット：<input type="number" id="offsetValue" min="0" max="29" value="0" oninput="updateOffset(this.value)" style="width: 60px;">分<br>
+			<!-- 模型時刻 開始オフセット：<span id="offsetValue">0</span>分<br> -->
+			<!-- <input type="range" id="offsetSlider" min="0" max="29" value="0" oninput="updateOffset(this.value)" style="width: 200px;"><br> -->
+			
 			<div class="tabs">
 				<button type="button" class="tab active" data-tab="season">季節</button>
 				<button type="button" class="tab" data-tab="weather">天候</button>
@@ -629,7 +674,8 @@
 				季節エフェクト：<select id="season" name="season">
 					<option value="none">なし</option>
 					<option value="hanabi">花火</option>
-					<!-- <option value="sakura">桜吹雪</option> -->
+					<!-- <option value="sakura">桜吹雪</option>
+					<option value="both">桜吹雪+花火</option> -->
 				</select><br>
 			</div>
 			<div id="weather-panel" class="tab-panel">
