@@ -84,6 +84,22 @@
 		let randomWeatherInterval = null;
 		let weatherExclusions = [];
 
+		// 時間帯スケジュール天候モード用グローバル変数
+		// weatherSchedule: [{ start: 模型時[時], end: 模型時[時], weather: 天候種別 }, ...]
+		let scheduleWeatherEnabled = false;
+		let weatherSchedule = [];
+
+		// スケジュール各行で選べる天候の一覧
+		const SCHEDULE_WEATHER_OPTIONS = [
+			{ value: "none", label: "なし（晴れ）" },
+			{ value: "koame", label: "小雨" },
+			{ value: "ooame", label: "大雨" },
+			{ value: "uraiu", label: "雨雷" },
+			{ value: "yuki", label: "雪" },
+			{ value: "fubuki", label: "吹雪" },
+			{ value: "moufubuki", label: "猛吹雪" },
+		];
+
 		/**
 		 * ランダム天候モード開始
 		 */
@@ -233,6 +249,193 @@
 			}
 		}
 
+		// ============================================================
+		// 時間帯スケジュール天候モード
+		// 模型時刻の時間帯ごとに天候を割り当て、模型時刻の進行に合わせて
+		// 自動で天候を切り替える。
+		// ============================================================
+
+		/**
+		 * スケジュール設定を localStorage から読み込む。
+		 * 未設定・不正な場合はデフォルトの例を入れる。
+		 */
+		function loadWeatherSchedule() {
+			const saved = localStorage.getItem("weatherSchedule");
+			if (saved) {
+				try {
+					const parsed = JSON.parse(saved);
+					if (Array.isArray(parsed)) {
+						weatherSchedule = parsed;
+					}
+				} catch (e) {
+					console.error("Failed to parse weatherSchedule:", e);
+					weatherSchedule = [];
+				}
+			}
+			if (!Array.isArray(weatherSchedule) || weatherSchedule.length === 0) {
+				// デフォルトの例（模型6〜10時 小雨 / 模型18〜24時 雨雷）
+				weatherSchedule = [
+					{ start: 6, end: 10, weather: "koame" },
+					{ start: 18, end: 24, weather: "uraiu" },
+				];
+			}
+		}
+
+		/**
+		 * スケジュール設定を localStorage に保存する。
+		 */
+		function saveWeatherSchedule() {
+			localStorage.setItem("weatherSchedule", JSON.stringify(weatherSchedule));
+		}
+
+		/**
+		 * 現在の模型時刻に対応する天候をスケジュールから求める。
+		 * 開始時 <= 模型時 < 終了時 で一致した最初の行を採用。
+		 * どの行にも一致しなければ "none"（晴れ）。
+		 * @returns {string} 天候種別
+		 */
+		function getScheduledWeather() {
+			const modelHour = Math.floor(getModelTotalSec() / 3600);
+			for (const slot of weatherSchedule) {
+				const start = Number(slot.start);
+				const end = Number(slot.end);
+				if (modelHour >= start && modelHour < end) {
+					return slot.weather || "none";
+				}
+			}
+			return "none";
+		}
+
+		/**
+		 * スケジュールに従って現在の天候を適用する。
+		 * 天候が変わるときだけパーティクルを初期化する。
+		 */
+		function applyWeatherSchedule() {
+			if (!scheduleWeatherEnabled) return;
+			const w = getScheduledWeather();
+			if (w !== weatherMode) {
+				resetAllWeatherParticles();
+				weatherMode = w;
+				console.log("スケジュール天候変更:", w, "(模型" + Math.floor(getModelTotalSec() / 3600) + "時)");
+			}
+		}
+
+		/**
+		 * スケジュールモード開始
+		 */
+		function startWeatherSchedule() {
+			scheduleWeatherEnabled = true;
+			// "schedule" を天候値として保存（復元時の判定に使う）
+			localStorage.setItem(PARAM_NAME_WEATHER, "schedule");
+			applyWeatherSchedule(); // 即座に1回適用
+		}
+
+		/**
+		 * スケジュールモード停止
+		 */
+		function stopWeatherSchedule() {
+			scheduleWeatherEnabled = false;
+			// URLパラメータに weather=schedule が残っていると
+			// リロード時にURLが優先されて再びスケジュールになるため除去
+			const url = new URL(window.location.href);
+			if (url.searchParams.get("weather") === "schedule") {
+				url.searchParams.delete("weather");
+				history.replaceState(null, '', url.toString());
+			}
+		}
+
+		/**
+		 * スケジュール1行分の入力・天候変更のハンドラ
+		 */
+		function onScheduleFieldChange(e) {
+			const idx = parseInt(e.target.getAttribute('data-index'));
+			const field = e.target.getAttribute('data-field');
+			if (!weatherSchedule[idx]) return;
+			if (field === 'weather') {
+				weatherSchedule[idx].weather = e.target.value;
+			} else {
+				weatherSchedule[idx][field] = parseInt(e.target.value) || 0;
+			}
+			saveWeatherSchedule();
+			if (scheduleWeatherEnabled) applyWeatherSchedule();
+		}
+
+		/**
+		 * スケジュール表を再描画する
+		 */
+		function renderScheduleRows() {
+			const container = document.getElementById('schedule-rows');
+			if (!container) return;
+			container.innerHTML = '';
+			weatherSchedule.forEach((slot, index) => {
+				const row = document.createElement('div');
+				row.className = 'schedule-row';
+				row.style.marginBottom = '6px';
+				const opts = SCHEDULE_WEATHER_OPTIONS.map(o =>
+					`<option value="${o.value}"${o.value === slot.weather ? ' selected' : ''}>${o.label}</option>`
+				).join('');
+				row.innerHTML =
+					`模型 <input type="number" min="0" max="30" value="${Number(slot.start)}" data-index="${index}" data-field="start" style="width:50px;">時 ` +
+					`〜 <input type="number" min="0" max="30" value="${Number(slot.end)}" data-index="${index}" data-field="end" style="width:50px;">時 ： ` +
+					`<select data-index="${index}" data-field="weather">${opts}</select> ` +
+					`<button type="button" class="button schedule-remove" data-index="${index}">削除</button>`;
+				container.appendChild(row);
+			});
+			// 入力・選択の変更を監視
+			container.querySelectorAll('input[data-field], select[data-field]').forEach(el => {
+				el.addEventListener('change', onScheduleFieldChange);
+			});
+			// 削除ボタン
+			container.querySelectorAll('.schedule-remove').forEach(btn => {
+				btn.addEventListener('click', function () {
+					removeScheduleRow(parseInt(this.getAttribute('data-index')));
+				});
+			});
+		}
+
+		/**
+		 * スケジュール行を追加
+		 */
+		function addScheduleRow() {
+			weatherSchedule.push({ start: 0, end: 24, weather: "koame" });
+			saveWeatherSchedule();
+			renderScheduleRows();
+			if (scheduleWeatherEnabled) applyWeatherSchedule();
+		}
+
+		/**
+		 * スケジュール行を削除
+		 * @param {number} index 行インデックス
+		 */
+		function removeScheduleRow(index) {
+			weatherSchedule.splice(index, 1);
+			saveWeatherSchedule();
+			renderScheduleRows();
+			if (scheduleWeatherEnabled) applyWeatherSchedule();
+		}
+
+		/**
+		 * 起動時にスケジュール設定を復元
+		 */
+		function restoreWeatherScheduleSettings() {
+			loadWeatherSchedule();
+			renderScheduleRows();
+
+			if (weatherMode === "schedule") {
+				// セレクトボックスを「時間帯スケジュール」に戻す
+				const weatherSelect = document.getElementById('weather');
+				if (weatherSelect) {
+					weatherSelect.value = 'schedule';
+				}
+				// スケジュール表UIを表示
+				const scheduleDiv = document.getElementById('weather-schedule');
+				if (scheduleDiv) {
+					scheduleDiv.style.display = 'block';
+				}
+				startWeatherSchedule();
+			}
+		}
+
 		/**
 		 * 模型時刻での現在時刻を模型秒単位で取得する
 		 * @param {boolean} withMilliSec ミリ秒まで取得するかどうか
@@ -358,8 +561,8 @@
 				document.getElementById('infotext_input').value = infotext;
 				document.getElementById('time-multiplier').value = timeMultiplier;
 				document.getElementById('season').value = seasonMode;
-				// ランダムモード中は "random" を維持（実天候で上書きしない）
-				document.getElementById('weather').value = randomWeatherEnabled ? "random" : weatherMode;
+				// ランダム／スケジュールモード中はその値を維持（実天候で上書きしない）
+				document.getElementById('weather').value = randomWeatherEnabled ? "random" : (scheduleWeatherEnabled ? "schedule" : weatherMode);
 				document.getElementById('view-ss').value = viewss;
 				document.getElementById('coron-flickr').value = coronflickr;
 
@@ -386,6 +589,9 @@
 			const modelMinute = numPad(modelMinuteNum);
 			const modelSec = numPad(Math.floor(modelTotalSec % 60));
 			minute1 = modelHourNum;
+
+			// 時間帯スケジュールに従って天候を更新
+			applyWeatherSchedule();
 
 			if(viewss == "true"){
 				document.getElementById('RFCClock').innerHTML = `${modelHour}<span class="coron">:</span>${modelMinute}<span class="coron">:</span>${modelSec}`;
@@ -555,29 +761,38 @@
 
 			// ランダム天候モード関連の初期化
 			restoreRandomWeatherSettings();
+			// 時間帯スケジュール天候モード関連の初期化
+			restoreWeatherScheduleSettings();
 
 			// 天候選択の変更を監視
 			const weatherSelect = document.getElementById('weather');
 			const weatherExclusionsDiv = document.getElementById('weather-exclusions');
+			const weatherScheduleDiv = document.getElementById('weather-schedule');
 
-			function updateWeatherExclusionsVisibility() {
-				if (weatherSelect.value === 'random') {
-					weatherExclusionsDiv.style.display = 'block';
-				} else {
-					weatherExclusionsDiv.style.display = 'none';
+			function updateWeatherPanelVisibility() {
+				const v = weatherSelect.value;
+				weatherExclusionsDiv.style.display = (v === 'random') ? 'block' : 'none';
+				if (weatherScheduleDiv) {
+					weatherScheduleDiv.style.display = (v === 'schedule') ? 'block' : 'none';
 				}
 			}
 
 			// 初期表示を設定
-			updateWeatherExclusionsVisibility();
+			updateWeatherPanelVisibility();
 
 			weatherSelect.addEventListener('change', function () {
+				updateWeatherPanelVisibility();
 				if (this.value === 'random') {
-					weatherExclusionsDiv.style.display = 'block';
+					stopWeatherSchedule();
 					startRandomWeather();
-				} else {
-					weatherExclusionsDiv.style.display = 'none';
+				} else if (this.value === 'schedule') {
 					stopRandomWeather();
+					// パーティクル初期化
+					resetAllWeatherParticles();
+					startWeatherSchedule();
+				} else {
+					stopRandomWeather();
+					stopWeatherSchedule();
 					// パーティクル初期化
 					resetAllWeatherParticles();
 					// 通常の天候モードに切り替え
@@ -585,6 +800,12 @@
 					localStorage.setItem(PARAM_NAME_WEATHER, weatherMode);
 				}
 			});
+
+			// スケジュール「行を追加」ボタン
+			const scheduleAddBtn = document.getElementById('schedule-add');
+			if (scheduleAddBtn) {
+				scheduleAddBtn.addEventListener('click', addScheduleRow);
+			}
 
 			// 季節選択の変更を監視
 			const seasonSelect = document.getElementById('season');
@@ -682,6 +903,7 @@
 				天候エフェクト：<select id="weather" name="weather">
 					<option value="none">なし（晴れ）</option>
 					<!-- <option value="random">ランダム</option> -->
+					<option value="schedule">時間帯スケジュール</option>
 					<option value="koame">小雨</option>
 					<option value="ooame">大雨</option>
 					<option value="uraiu">雨雷</option>
@@ -689,6 +911,12 @@
 					<option value="fubuki">吹雪</option>
 					<option value="moufubuki">猛吹雪</option>
 				</select><br>
+				<div id="weather-schedule" style="margin-top: 10px; display: none;">
+					<div style="font-weight: bold; margin-bottom: 5px;">時間帯ごとの天候（模型時刻基準）：</div>
+					<div style="font-size: 12px; margin-bottom: 6px;">開始時 ≦ 模型時刻 &lt; 終了時 の間、その天候になります。どの時間帯にも当てはまらない時間は「晴れ」です。</div>
+					<div id="schedule-rows"></div>
+					<button type="button" id="schedule-add" class="button">行を追加</button>
+				</div>
 				<div id="weather-exclusions" style="margin-top: 10px; display: none;">
 					<div style="font-weight: bold; margin-bottom: 5px;">ランダムから除外する天候：</div>
 					<label><input type="checkbox" id="exclude-moufubuki"> 猛吹雪を除外</label><br>
